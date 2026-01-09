@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Assessment - {{ enrollment.course.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div style="max-width: 800px; margin: 0 auto;">
+    <div class="text-center mb-4">
+      <h1 style="font-size: var(--font-size-2xl); font-weight: 600; margin-bottom: var(--spacing-sm);">
+        Course Assessment
+      </h1>
+      <p style="color: var(--gray-600);">{{ assessment.title }}</p>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-body">
+        <div style="display: flex; align-items: center; gap: var(--spacing-lg); justify-content: center;">
+          <div style="text-align: center;">
+            <span class="material-icons" style="font-size: 2rem; color: var(--primary);">quiz</span>
+            <div style="margin-top: var(--spacing-xs);">{{ assessment.questions|length }} Questions</div>
+          </div>
+          <div style="text-align: center;">
+            <span class="material-icons" style="font-size: 2rem; color: var(--success);">workspace_premium</span>
+            <div style="margin-top: var(--spacing-xs);">{{ assessment.passing_score }}% to Pass</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+
+          {% for field in form %}
+          <div class="form-group"
+            style="padding: var(--spacing-lg); background: var(--gray-50); border-radius: var(--radius-md); margin-bottom: var(--spacing-lg);">
+            <h3 style="margin-bottom: var(--spacing-md); display: flex; align-items: center; gap: var(--spacing-sm);">
+              <span class="badge badge-primary">{{ forloop.counter }}</span>
+              <span>{{ field.label }}</span>
+            </h3>
+
+            <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+              {{ field }}
+            </div>
+          </div>
+          {% endfor %}
+
+          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; justify-content: center;">
+            <span class="material-icons">send</span>
+            <span>Submit Assessment</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Course Catalog - LearnHub{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="text-center mb-4">
+    <h1 style="font-size: var(--font-size-3xl); font-weight: 700; margin-bottom: var(--spacing-sm);">
+      Course Catalog
+    </h1>
+    <p style="color: var(--gray-600); font-size: var(--font-size-lg);">
+      Choose from our selection of interactive courses
+    </p>
+  </div>
+
+  {% if courses %}
+  <div class="grid grid-3">
+    {% for course in courses %}
+    <div class="card">
+      {% if course.thumbnail %}
+      <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="card-img">
+      {% else %}
+      <div class="card-img" style="display: flex; align-items: center; justify-content: center;">
+        <span class="material-icons" style="font-size: 4rem; color: var(--primary);">book</span>
+      </div>
+      {% endif %}
+
+      <div class="card-body">
+        <div style="display: flex; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm);">
+          <span class="badge badge-primary">
+            <span class="material-icons" style="font-size: 1rem;">signal_cellular_alt</span>
+            {{ course.get_level_display }}
+          </span>
+          <span class="badge badge-primary">
+            <span class="material-icons" style="font-size: 1rem;">schedule</span>
+            {{ course.duration_hours }}h
+          </span>
+        </div>
+
+        <h3 class="card-title">{{ course.title }}</h3>
+        <p class="card-text">{{ course.description|truncatewords:20 }}</p>
+
+        <div class="card-footer">
+          <span class="price">${{ course.price }}</span>
+          <a href="{% url 'course_detail' course.id %}" class="btn btn-primary">
+            <span>View Course</span>
+            <span class="material-icons">arrow_forward</span>
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card text-center py-5">
+    <span class="material-icons" style="font-size: 4rem; color: var(--gray-400); margin-bottom: var(--spacing-md);">
+      library_books
+    </span>
+    <h3 style="color: var(--gray-600);">No courses available yet</h3>
+    <p style="color: var(--gray-500);">Check back soon for new courses!</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

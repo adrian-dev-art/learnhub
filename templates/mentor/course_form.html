@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ action }} Course - LearnHub Mentor{% endblock %}
+
+{% block content %}
+<div class="mentor-container">
+  <div class="breadcrumb">
+    <a href="{% url 'mentor_dashboard' %}">Dashboard</a>
+    <span class="material-icons">chevron_right</span>
+    <span>{{ action }} Course</span>
+  </div>
+
+  <div class="form-container">
+    <div class="form-header">
+      <h1>{{ action }} Course</h1>
+      <p>Define your course details, pricing, and level.</p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" class="mentor-form">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label for="{{ form.title.id_for_label }}">Course Title</label>
+        {{ form.title }}
+        {% if form.title.errors %}<div class="error-text">{{ form.title.errors }}</div>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.description.id_for_label }}">Description</label>
+        {{ form.description }}
+        {% if form.description.errors %}<div class="error-text">{{ form.description.errors }}</div>{% endif %}
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="{{ form.price.id_for_label }}">Price ($)</label>
+          {{ form.price }}
+          {% if form.price.errors %}<div class="error-text">{{ form.price.errors }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.duration_hours.id_for_label }}">Duration (Hours)</label>
+          {{ form.duration_hours }}
+          {% if form.duration_hours.errors %}<div class="error-text">{{ form.duration_hours.errors }}</div>{% endif %}
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="{{ form.level.id_for_label }}">Difficulty Level</label>
+          {{ form.level }}
+          {% if form.level.errors %}<div class="error-text">{{ form.level.errors }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.is_active.id_for_label }}">Status</label>
+          <div class="checkbox-wrapper">
+            {{ form.is_active }}
+            <span>Active (Visible to students)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.thumbnail.id_for_label }}">Course Thumbnail</label>
+        <div class="file-upload-wrapper">
+          {% if course.thumbnail %}
+          <div class="current-thumb">
+            <img src="{{ course.thumbnail.url }}" alt="Current Thumbnail">
+            <p>Current Image</p>
+          </div>
+          {% endif %}
+          {{ form.thumbnail }}
+        </div>
+        {% if form.thumbnail.errors %}<div class="error-text">{{ form.thumbnail.errors }}</div>{% endif %}
+      </div>
+
+      <div class="form-actions">
+        <a href="{% url 'mentor_dashboard' %}" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary">
+          <span class="material-icons">save</span>
+          <span>{% if action == 'Create' %}Create Course{% else %}Save Changes{% endif %}</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .mentor-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+
+  .form-container {
+    background: white;
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  }
+
+  .form-header {
+    margin-bottom: 32px;
+    text-align: center;
+  }
+
+  .form-header h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 8px;
+  }
+
+  .form-header p {
+    color: #64748b;
+  }
+
+  .mentor-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  label {
+    font-weight: 600;
+    color: #475569;
+    font-size: 0.9rem;
+  }
+
+  input[type="text"],
+  input[type="number"],
+  select,
+  textarea {
+    padding: 12px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.2s;
+    background: #f8fafc;
+    width: 100%;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: #6366f1;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+  }
+
+  .checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0;
+  }
+
+  .checkbox-wrapper input {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+  }
+
+  .file-upload-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+    border: 2px dashed #e2e8f0;
+    border-radius: 16px;
+    background: #f8fafc;
+  }
+
+  .current-thumb img {
+    width: 120px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 4px;
+  }
+
+  .current-thumb p {
+    font-size: 0.75rem;
+    color: #94a3b8;
+  }
+
+  .error-text {
+    color: #ef4444;
+    font-size: 0.8rem;
+    margin-top: 4px;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    margin-top: 16px;
+    padding-top: 24px;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  .btn-secondary {
+    background: #f1f5f9;
+    color: #475569;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .btn-secondary:hover {
+    background: #e2e8f0;
+  }
+</style>
+{% endblock %}

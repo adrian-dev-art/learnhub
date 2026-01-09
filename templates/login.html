@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - LearnHub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div style="max-width: 450px; margin: 0 auto;">
+    <div class="text-center mb-4">
+      <span class="material-icons" style="font-size: 4rem; color: var(--primary);">account_circle</span>
+      <h1 style="font-size: var(--font-size-2xl); font-weight: 600; margin-top: var(--spacing-md);">
+        Welcome Back
+      </h1>
+      <p style="color: var(--gray-600);">Login to continue learning</p>
+    </div>
+
+    <div class="card">
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="form-group">
+            <label class="form-label">Username</label>
+            <input type="text" name="username" class="form-input" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" name="password" class="form-input" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; justify-content: center;">
+            <span class="material-icons">login</span>
+            <span>Login</span>
+          </button>
+        </form>
+
+        <div
+          style="text-align: center; margin-top: var(--spacing-lg); padding-top: var(--spacing-lg); border-top: 1px solid var(--gray-200);">
+          <p style="color: var(--gray-600);">
+            Don't have an account?
+            <a href="{% url 'register' %}" style="color: var(--primary); text-decoration: none; font-weight: 500;">Sign
+              up</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

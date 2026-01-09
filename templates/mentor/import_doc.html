@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Import from Document - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="mentor-container">
+  <div class="breadcrumb">
+    <a href="{% url 'mentor_dashboard' %}">Dashboard</a>
+    <span class="material-icons">chevron_right</span>
+    <a href="{% url 'mentor_course_detail' course.id %}">{{ course.title }}</a>
+    <span class="material-icons">chevron_right</span>
+    <span>Import from Document</span>
+  </div>
+
+  <div class="import-container">
+    <div class="import-header">
+      <div class="icon-circle">
+        <span class="material-icons">description</span>
+      </div>
+      <h1>Import Course Content</h1>
+      <p>Upload a Word document (.docx) to automatically generate course modules.</p>
+    </div>
+
+    <div class="import-instructions">
+      <h3>How it works:</h3>
+      <ul>
+        <li><span class="material-icons">check_circle</span> <strong>Headings:</strong> Any text styled as "Heading 1",
+          "Heading 2", etc., will start a new module.</li>
+        <li><span class="material-icons">check_circle</span> <strong>Body Text:</strong> All text following a heading
+          will be added as the module's content.</li>
+        <li><span class="material-icons">check_circle</span> <strong>Ordering:</strong> Modules will be created in the
+          order they appear in the document.</li>
+      </ul>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" class="import-form">
+      {% csrf_token %}
+      <div class="file-drop-area" id="drop-area">
+        <span class="material-icons">cloud_upload</span>
+        <p>Drag & drop your .docx file here or click to browse</p>
+        <input type="file" name="doc_file" id="file-input" accept=".docx" required>
+        <div id="file-name" class="selected-file"></div>
+      </div>
+
+      <div class="form-actions">
+        <a href="{% url 'mentor_course_detail' course.id %}" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary">
+          <span class="material-icons">auto_awesome</span>
+          <span>Start Import</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .mentor-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+
+  .import-container {
+    background: white;
+    border-radius: 24px;
+    padding: 48px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  }
+
+  .import-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  .icon-circle {
+    width: 80px;
+    height: 80px;
+    background: #eef2ff;
+    color: #6366f1;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+  }
+
+  .icon-circle .material-icons {
+    font-size: 40px;
+  }
+
+  .import-header h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 12px;
+  }
+
+  .import-header p {
+    color: #64748b;
+    font-size: 1.1rem;
+  }
+
+  .import-instructions {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 32px;
+    border: 1px solid #e2e8f0;
+  }
+
+  .import-instructions h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 16px;
+  }
+
+  .import-instructions ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .import-instructions li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #475569;
+    font-size: 0.95rem;
+  }
+
+  .import-instructions .material-icons {
+    color: #22c55e;
+    font-size: 20px;
+  }
+
+  .file-drop-area {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 20px;
+    background: #f8fafc;
+    transition: all 0.2s;
+    cursor: pointer;
+    margin-bottom: 32px;
+  }
+
+  .file-drop-area:hover,
+  .file-drop-area.dragover {
+    border-color: #6366f1;
+    background: #eef2ff;
+  }
+
+  .file-drop-area .material-icons {
+    font-size: 48px;
+    color: #94a3b8;
+    margin-bottom: 16px;
+  }
+
+  .file-drop-area p {
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  #file-input {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .selected-file {
+    margin-top: 16px;
+    font-weight: 600;
+    color: #6366f1;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    padding-top: 24px;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  .btn-secondary {
+    background: #f1f5f9;
+    color: #475569;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .btn-secondary:hover {
+    background: #e2e8f0;
+  }
+</style>
+
+<script>
+  const dropArea = document.getElementById('drop-area');
+  const fileInput = document.getElementById('file-input');
+  const fileName = document.getElementById('file-name');
+
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropArea.addEventListener(eventName, preventDefaults, false);
+  });
+
+  function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropArea.addEventListener(eventName, () => dropArea.classList.add('dragover'), false);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropArea.addEventListener(eventName, () => dropArea.classList.remove('dragover'), false);
+  });
+
+  fileInput.addEventListener('change', function () {
+    if (this.files && this.files[0]) {
+      fileName.textContent = 'Selected: ' + this.files[0].name;
+    }
+  });
+</script>
+{% endblock %}

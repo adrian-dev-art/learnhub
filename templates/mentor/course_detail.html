@@ -1,0 +1,369 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Course: {{ course.title }} - LearningApp{% endblock %}
+
+{% block content %}
+<div class="mentor-container">
+  <div class="breadcrumb">
+    <a href="{% url 'mentor_dashboard' %}">Dashboard</a>
+    <span class="material-icons">chevron_right</span>
+    <span>{{ course.title }}</span>
+  </div>
+
+  <div class="mentor-header">
+    <div class="header-info">
+      <h1>{{ course.title }}</h1>
+      <div class="course-meta">
+        <span class="badge badge-{{ course.level }}">{{ course.level|title }}</span>
+        <span class="meta-item">
+          <span class="material-icons">group</span>
+          {{ enrollments.count }} Students
+        </span>
+        <span class="meta-item">
+          <span class="material-icons">library_books</span>
+          {{ modules.count }} Modules
+        </span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="{% url 'mentor_course_edit' course.id %}" class="btn btn-secondary" style="margin-right: 10px;">
+        <span class="material-icons">edit</span>
+        <span>Edit Course</span>
+      </a>
+      <a href="{% url 'mentor_course_import_doc' course.id %}" class="btn btn-secondary" style="margin-right: 10px;">
+        <span class="material-icons">file_upload</span>
+        <span>Import Doc</span>
+      </a>
+      <a href="{% url 'mentor_module_add' course.id %}" class="btn btn-primary">
+        <span class="material-icons">add</span>
+        <span>Add Module</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="management-grid">
+    <!-- Modules Section -->
+    <div class="management-section">
+      <div class="section-header">
+        <h2>Course Curriculum</h2>
+        <p>Manage your course modules and lessons.</p>
+      </div>
+
+      <div class="module-list">
+        {% for module in modules %}
+        <div class="module-card">
+          <div class="module-drag-handle">
+            <span class="material-icons">drag_indicator</span>
+          </div>
+          <div class="module-icon">
+            <span class="material-icons">
+              {% if module.content_type == 'assessment' %}assignment
+              {% else %}description{% endif %}
+            </span>
+          </div>
+          <div class="module-info">
+            <h3>{{ module.title }}</h3>
+            <p>{{ module.get_content_type_display }} • Order: {{ module.order }}</p>
+          </div>
+          <div class="module-actions">
+            <a href="{% url 'mentor_module_edit' module.id %}" class="btn-icon" title="Edit">
+              <span class="material-icons">edit</span>
+            </a>
+            <button class="btn-icon delete" title="Delete">
+              <span class="material-icons">delete</span>
+            </button>
+          </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+          <span class="material-icons">post_add</span>
+          <p>No modules added yet. Start by adding your first lesson!</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Students Section -->
+    <div class="management-section">
+      <div class="section-header">
+        <h2>Enrolled Students</h2>
+        <p>Monitor student progress and performance.</p>
+      </div>
+
+      <div class="student-list">
+        {% for enrollment in enrollments %}
+        <div class="student-card">
+          <div class="student-avatar">
+            {{ enrollment.user.first_name|first }}{{ enrollment.user.last_name|first }}
+          </div>
+          <div class="student-info">
+            <h3>{{ enrollment.user.get_full_name }}</h3>
+            <p>{{ enrollment.user.email }}</p>
+            <div class="progress-mini">
+              <div class="progress-bar" style="width: {{ enrollment.calculated_progress }}%"></div>
+              <span>{{ enrollment.calculated_progress }}% Complete</span>
+            </div>
+          </div>
+          <div class="student-status">
+            {% if enrollment.completed %}
+            <span class="status-badge completed">Finished</span>
+            {% else %}
+            <span class="status-badge in-progress">In Progress</span>
+            {% endif %}
+          </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+          <span class="material-icons">person_off</span>
+          <p>No students enrolled yet.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .mentor-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #64748b;
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+  }
+
+  .breadcrumb a {
+    color: #6366f1;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .breadcrumb .material-icons {
+    font-size: 18px;
+  }
+
+  .mentor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 40px;
+  }
+
+  .header-info h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 12px;
+  }
+
+  .course-meta {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #64748b;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+  .meta-item .material-icons {
+    font-size: 18px;
+    color: #94a3b8;
+  }
+
+  .management-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 32px;
+  }
+
+  .management-section {
+    background: white;
+    border-radius: 24px;
+    padding: 32px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  }
+
+  .section-header {
+    margin-bottom: 32px;
+  }
+
+  .section-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 4px;
+  }
+
+  .section-header p {
+    color: #64748b;
+  }
+
+  /* Module Cards */
+  .module-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .module-card {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    border-radius: 16px;
+    transition: all 0.2s;
+  }
+
+  .module-card:hover {
+    background: white;
+    border-color: #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    transform: translateX(4px);
+  }
+
+  .module-drag-handle {
+    color: #cbd5e1;
+    cursor: grab;
+    margin-right: 12px;
+  }
+
+  .module-icon {
+    width: 40px;
+    height: 40px;
+    background: white;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6366f1;
+    margin-right: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .module-info {
+    flex: 1;
+  }
+
+  .module-info h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 2px;
+  }
+
+  .module-info p {
+    font-size: 0.8rem;
+    color: #94a3b8;
+  }
+
+  .module-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-icon.delete:hover {
+    background: #fef2f2;
+    color: #ef4444;
+  }
+
+  /* Student Cards */
+  .student-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .student-card {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .student-avatar {
+    width: 44px;
+    height: 44px;
+    background: #eef2ff;
+    color: #6366f1;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-right: 16px;
+  }
+
+  .student-info {
+    flex: 1;
+  }
+
+  .student-info h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin-bottom: 2px;
+  }
+
+  .student-info p {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-bottom: 8px;
+  }
+
+  .progress-mini {
+    width: 120px;
+  }
+
+  .progress-mini .progress-bar {
+    height: 4px;
+    background: #6366f1;
+    border-radius: 2px;
+    margin-bottom: 4px;
+  }
+
+  .progress-mini span {
+    font-size: 0.7rem;
+    color: #64748b;
+    font-weight: 600;
+  }
+
+  .status-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .status-badge.completed {
+    background: #ecfdf5;
+    color: #059669;
+  }
+
+  .status-badge.in-progress {
+    background: #fff7ed;
+    color: #ea580c;
+  }
+
+  @media (max-width: 1024px) {
+    .management-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Certificate - {{ certificate.course.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+    <div style="margin-bottom: var(--spacing-xl);">
+      <span class="material-icons" style="font-size: 5rem; color: var(--success);">workspace_premium</span>
+      <h1 style="font-size: var(--font-size-3xl); font-weight: 700; margin-top: var(--spacing-md);">
+        Congratulations!
+      </h1>
+      <p style="font-size: var(--font-size-lg); color: var(--gray-600); margin-top: var(--spacing-sm);">
+        You have successfully completed the course
+      </p>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-body" style="padding: var(--spacing-2xl);">
+        <div
+          style="border: 4px solid var(--primary); border-radius: var(--radius-lg); padding: var(--spacing-2xl); background: linear-gradient(135deg, var(--primary-light) 0%, var(--white) 100%);">
+          <h2 style="font-size: var(--font-size-3xl); color: var(--primary); margin-bottom: var(--spacing-lg);">
+            CERTIFICATE OF COMPLETION
+          </h2>
+
+          <p style="font-size: var(--font-size-lg); margin-bottom: var(--spacing-md);">
+            This certifies that
+          </p>
+
+          <h3 style="font-size: var(--font-size-2xl); font-weight: 700; margin-bottom: var(--spacing-lg);">
+            {{ certificate.user.get_full_name|default:certificate.user.username }}
+          </h3>
+
+          <p style="font-size: var(--font-size-lg); margin-bottom: var(--spacing-md);">
+            has successfully completed
+          </p>
+
+          <h3
+            style="font-size: var(--font-size-xl); font-weight: 600; color: var(--primary); margin-bottom: var(--spacing-xl);">
+            {{ certificate.course.title }}
+          </h3>
+
+          <div
+            style="display: flex; justify-content: center; gap: var(--spacing-xl); margin-top: var(--spacing-2xl); padding-top: var(--spacing-xl); border-top: 2px solid var(--gray-300);">
+            <div>
+              <div style="font-weight: 600;">Issue Date</div>
+              <div style="color: var(--gray-600);">{{ certificate.issued_at|date:"F d, Y" }}</div>
+            </div>
+            <div>
+              <div style="font-weight: 600;">Certificate ID</div>
+              <div style="color: var(--gray-600); font-family: monospace;">{{ certificate.certificate_id }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: var(--spacing-md); justify-content: center;">
+      <a href="{% url 'download_certificate' certificate.id %}" class="btn btn-primary btn-lg">
+        <span class="material-icons">download</span>
+        <span>Download Certificate PDF</span>
+      </a>
+
+      <a href="{% url 'catalog' %}" class="btn btn-secondary btn-lg">
+        <span class="material-icons">explore</span>
+        <span>Browse More Courses</span>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

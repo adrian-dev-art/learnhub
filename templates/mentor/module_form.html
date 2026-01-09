@@ -1,0 +1,636 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ action }} Module - {{ course.title }}{% endblock %}
+
+{% block extra_css %}
+<!-- Quill WYSIWYG Styles -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<style>
+  .mentor-container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+
+  .form-container {
+    background: white;
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  }
+
+  .form-header {
+    margin-bottom: 32px;
+    text-align: center;
+  }
+
+  .form-header h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 8px;
+  }
+
+  .mentor-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  label {
+    font-weight: 600;
+    color: #475569;
+    font-size: 0.9rem;
+  }
+
+  input[type="text"],
+  input[type="number"],
+  input[type="url"],
+  select {
+    padding: 12px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.2s;
+    background: #f8fafc;
+    width: 100%;
+  }
+
+  input:focus,
+  select:focus {
+    outline: none;
+    border-color: #6366f1;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+  }
+
+  /* Quill Editor Styling */
+  .editor-wrapper {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+  }
+
+  #quill-editor {
+    min-height: 400px;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    background: white;
+  }
+
+  .ql-toolbar.ql-snow {
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    background: white;
+    padding: 12px;
+  }
+
+  .ql-container.ql-snow {
+    border: none;
+  }
+
+  .conditional-section {
+    padding: 24px;
+    background: #f1f5f9;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border: 1px solid #e2e8f0;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    margin-top: 16px;
+    padding-top: 24px;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  .error-summary {
+    background: #fef2f2;
+    border: 1px solid #fee2e2;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    display: flex;
+    gap: 12px;
+    color: #b91c1c;
+  }
+
+  /* Preview Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.active {
+    display: flex;
+  }
+
+  .modal-content {
+    background: white;
+    width: 90%;
+    max-width: 800px;
+    max-height: 90vh;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  }
+
+  .modal-header {
+    padding: 24px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+  }
+
+  .btn-close {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #64748b;
+    padding: 4px;
+    border-radius: 50%;
+    transition: all 0.2s;
+  }
+
+  .btn-close:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+  }
+
+  .modal-body {
+    padding: 40px;
+    overflow-y: auto;
+  }
+
+  /* Preview Content Styling (Matching Viewer) */
+  .preview-content {
+    font-family: 'Inter', sans-serif;
+    color: #334155;
+    line-height: 1.85;
+  }
+
+  .preview-content h1,
+  .preview-content h2,
+  .preview-content h3 {
+    color: #0f172a;
+    font-weight: 800;
+    margin-top: 1.5em;
+    margin-bottom: 0.8em;
+  }
+
+  .preview-content p {
+    margin-bottom: 1.5em;
+  }
+
+  .preview-content img {
+    max-width: 100%;
+    border-radius: 12px;
+  }
+
+  .preview-content pre {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 1.5rem;
+    border-radius: 12px;
+    overflow-x: auto;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mentor-container">
+  <div class="breadcrumb">
+    <a href="{% url 'mentor_dashboard' %}">Dashboard</a>
+    <span class="material-icons">chevron_right</span>
+    <a href="{% url 'mentor_course_detail' course.id %}">{{ course.title }}</a>
+    <span class="material-icons">chevron_right</span>
+    <span>{{ action }} Module</span>
+  </div>
+
+  <div class="form-container">
+    <div class="form-header">
+      <h1>{{ action }} Module</h1>
+      <p>Create interactive lessons. Use the preview button to see how it looks.</p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" class="mentor-form" id="moduleForm">
+      {% csrf_token %}
+
+      {% if form.errors %}
+      <div class="error-summary">
+        <span class="material-icons">error</span>
+        <div>
+          <strong>Please correct the errors below.</strong>
+          {{ form.non_field_errors }}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="form-group">
+        <label for="{{ form.title.id_for_label }}">Title</label>
+        {{ form.title }}
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="{{ form.content_type.id_for_label }}">Type</label>
+          {{ form.content_type }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.order.id_for_label }}">Display Order</label>
+          {{ form.order }}
+        </div>
+      </div>
+
+      <!-- Content Section (Text) -->
+      <div class="form-group" id="text-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <label id="content-label" style="margin:0;">Lesson Content</label>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="showPreview()"
+            style="padding: 4px 12px; font-size: 0.85rem;">
+            <span class="material-icons"
+              style="font-size: 16px; vertical-align: middle; margin-right: 4px;">visibility</span>
+            Preview
+          </button>
+        </div>
+        <div class="editor-wrapper">
+          <div id="quill-editor"></div>
+        </div>
+        <!-- Hidden input to store HTML content -->
+        <textarea name="content" id="hidden_content"
+          style="display:none;">{{ form.content.value|default:'' }}</textarea>
+      </div>
+
+      <!-- Video Section -->
+      <div class="form-group" id="video-section" style="display: none;">
+        <label for="{{ form.video_url.id_for_label }}">Video URL (YouTube)</label>
+        {{ form.video_url }}
+        <p class="help-text">Paste the full YouTube URL (e.g., https://www.youtube.com/watch?v=...)</p>
+      </div>
+
+      <!-- Code Challenge Section -->
+      <div id="code-section" class="conditional-section" style="display: none;">
+        <div class="form-group">
+          <label for="{{ form.language.id_for_label }}">Programming Language</label>
+          {{ form.language }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.starter_code.id_for_label }}">Starter Code</label>
+          {{ form.starter_code }}
+          <p class="help-text">The code students will see when they start the exercise.</p>
+        </div>
+        <div class="form-group">
+          <label for="{{ form.expected_output.id_for_label }}">Expected Output</label>
+          {{ form.expected_output }}
+          <p class="help-text">The output required to pass the exercise.</p>
+        </div>
+      </div>
+
+      <!-- Optional Quiz Section -->
+      <div class="form-group" style="margin-top: 32px; border-top: 1px solid #e2e8f0; padding-top: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <label style="font-size: 1.1rem; color: #1e293b; margin: 0;">Module Quiz (Optional)</label>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="addQuestion()">
+            <span class="material-icons"
+              style="font-size: 18px; vertical-align: middle; margin-right: 4px;">add_circle</span>
+            Add Question
+          </button>
+        </div>
+
+        <div id="quiz-builder-container" style="display: flex; flex-direction: column; gap: 24px;">
+          <!-- Questions will be added here -->
+        </div>
+
+        <!-- Hidden input for quiz data -->
+        <input type="hidden" name="quiz_data" id="id_quiz_data" value="{{ form.quiz_data.value|default:'[]' }}">
+      </div>
+
+      <div class="form-actions">
+        <a href="{% url 'mentor_course_detail' course.id %}" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-primary">
+          <span class="material-icons">save</span>
+          <span>Save Module</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal-overlay" id="previewModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Module Preview</h2>
+      <button class="btn-close" onclick="closePreview()">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div id="previewContent" class="preview-content"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Quill WYSIWYG Scripts -->
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+<script>
+  let quill;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const typeSelect = document.getElementById('{{ form.content_type.id_for_label }}');
+    const textSection = document.getElementById('text-section');
+    const videoSection = document.getElementById('video-section');
+    const codeSection = document.getElementById('code-section');
+    const hiddenInput = document.getElementById('hidden_content');
+    const docUpload = document.getElementById('doc-upload');
+    const quizContainer = document.getElementById('quiz-builder-container');
+    const quizDataInput = document.getElementById('id_quiz_data');
+
+    // Initialize Quill if container exists
+    if (document.getElementById('quill-editor')) {
+      quill = new Quill('#quill-editor', {
+        theme: 'snow',
+        modules: {
+          toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            ['blockquote', 'code-block'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            [{ 'color': [] }, { 'background': [] }],
+            ['link', 'image', 'video'],
+            ['clean']
+          ]
+        }
+      });
+
+      // Load initial content
+      if (hiddenInput && hiddenInput.value) {
+        if (hiddenInput.value.startsWith('{')) {
+          try {
+            const data = JSON.parse(hiddenInput.value);
+            quill.setText('Legacy content detected. Please rewrite.');
+          } catch (e) {
+            quill.root.innerHTML = hiddenInput.value;
+          }
+        } else {
+          quill.root.innerHTML = hiddenInput.value;
+        }
+      }
+    }
+
+    // Handle Doc Import
+    if (docUpload && quill) {
+      docUpload.addEventListener('change', function (e) {
+        if (this.files && this.files[0]) {
+          const formData = new FormData();
+          formData.append('doc_file', this.files[0]);
+          formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+          // Show loading state
+          const btn = this.nextElementSibling;
+          const originalText = btn.innerHTML;
+          btn.innerHTML = '<span class="material-icons spin" style="font-size: 16px; vertical-align: middle; margin-right: 4px;">refresh</span> Importing...';
+          btn.disabled = true;
+
+          fetch('{% url "import_module_content" %}', {
+            method: 'POST',
+            body: formData
+          })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                // Insert content into Quill
+                const range = quill.getSelection(true) || { index: quill.getLength() };
+                quill.clipboard.dangerouslyPasteHTML(range.index, data.content);
+              } else {
+                alert('Error importing document: ' + data.error);
+              }
+            })
+            .catch(error => {
+              alert('Error uploading file: ' + error);
+            })
+            .finally(() => {
+              // Reset button
+              btn.innerHTML = originalText;
+              btn.disabled = false;
+              docUpload.value = ''; // Clear input
+            });
+        }
+      });
+    }
+
+    // Sync Quill content to hidden textarea on form submit
+    const form = document.getElementById('moduleForm');
+    if (form) {
+      form.onsubmit = function () {
+        if (hiddenInput && quill) {
+          hiddenInput.value = quill.root.innerHTML;
+        }
+        updateQuizData(); // Sync quiz data
+      };
+    }
+
+    function toggleFields() {
+      if (!typeSelect) return;
+      const val = typeSelect.value;
+
+      // Hide all first
+      if (textSection) textSection.style.display = 'none';
+      if (videoSection) videoSection.style.display = 'none';
+      if (codeSection) codeSection.style.display = 'none';
+
+      if (val === 'text') {
+        if (textSection) textSection.style.display = 'flex';
+      } else if (val === 'video') {
+        if (videoSection) videoSection.style.display = 'flex';
+      } else if (val === 'code') {
+        if (textSection) textSection.style.display = 'flex';
+        if (codeSection) codeSection.style.display = 'flex';
+      }
+    }
+
+    if (typeSelect) {
+      typeSelect.addEventListener('change', toggleFields);
+      toggleFields();
+    }
+
+    // Quiz Builder Logic
+    let quizData = [];
+    if (quizDataInput) {
+      try {
+        const rawVal = quizDataInput.value;
+        if (rawVal && rawVal !== 'None' && rawVal !== '[]') {
+          const parsed = typeof rawVal === 'string' ? JSON.parse(rawVal.replace(/'/g, '"')) : rawVal;
+          quizData = Array.isArray(parsed) ? parsed : [];
+        }
+      } catch (e) {
+        console.error("Error parsing quiz data", e);
+        quizData = [];
+      }
+    }
+
+    // Ensure quizData is never null
+    if (!Array.isArray(quizData)) {
+      quizData = [];
+    }
+
+    // Define global functions immediately
+    window.addQuestion = function () {
+      quizData.push({
+        question: "",
+        options: ["", ""],
+        correct_index: -1 // Use index instead of string value
+      });
+      renderQuiz();
+    };
+
+    window.removeQuestion = function (index) {
+      quizData.splice(index, 1);
+      renderQuiz();
+    };
+
+    window.updateQuestionText = function (index, value) {
+      quizData[index].question = value;
+      updateQuizData();
+    };
+
+    window.addOption = function (qIndex) {
+      quizData[qIndex].options.push("");
+      renderQuiz();
+    };
+
+    window.removeOption = function (qIndex, oIndex) {
+      quizData[qIndex].options.splice(oIndex, 1);
+      // If we removed the correct answer, reset it
+      if (quizData[qIndex].correct_index === oIndex) {
+        quizData[qIndex].correct_index = -1;
+      } else if (quizData[qIndex].correct_index > oIndex) {
+        quizData[qIndex].correct_index--;
+      }
+      renderQuiz();
+    };
+
+    window.updateOptionText = function (qIndex, oIndex, value) {
+      quizData[qIndex].options[oIndex] = value;
+      updateQuizData();
+    };
+
+    window.setCorrectAnswer = function (qIndex, index) {
+      quizData[qIndex].correct_index = index;
+      updateQuizData();
+      renderQuiz();
+    };
+
+    function renderQuiz() {
+      if (!quizContainer) return;
+      if (!Array.isArray(quizData)) quizData = [];
+
+      quizContainer.innerHTML = '';
+      quizData.forEach((q, qIndex) => {
+        // Migration check: if correct_answer exists but correct_index doesn't
+        if (q.correct_index === undefined && q.correct_answer !== undefined) {
+          q.correct_index = q.options.indexOf(q.correct_answer);
+        }
+
+        const qEl = document.createElement('div');
+        qEl.className = 'conditional-section';
+        qEl.style.position = 'relative';
+        qEl.innerHTML = `
+          <button type="button" class="btn-close" onclick="removeQuestion(${qIndex})" style="position: absolute; top: 10px; right: 10px; background: #fee2e2; color: #b91c1c;">
+            <span class="material-icons" style="font-size: 18px;">delete</span>
+          </button>
+          <div class="form-group">
+            <label>Question ${qIndex + 1}</label>
+            <input type="text" value="${q.question}" oninput="updateQuestionText(${qIndex}, this.value)" placeholder="Enter question text">
+          </div>
+          <div class="form-group">
+            <label>Options</label>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              ${q.options.map((opt, oIndex) => {
+          const isCorrect = q.correct_index === oIndex;
+          return `
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <button type="button"
+                          onclick="setCorrectAnswer(${qIndex}, ${oIndex})"
+                          class="btn btn-sm"
+                          style="padding: 8px 12px; border: 1px solid ${isCorrect ? '#22c55e' : '#cbd5e1'}; background: ${isCorrect ? '#f0fdf4' : 'white'}; color: ${isCorrect ? '#15803d' : '#64748b'}; border-radius: 8px; display: flex; align-items: center; gap: 4px;"
+                          title="${isCorrect ? 'Correct Answer' : 'Mark as Correct'}">
+                    <span class="material-icons" style="font-size: 18px;">${isCorrect ? 'check_circle' : 'radio_button_unchecked'}</span>
+                    ${isCorrect ? 'Correct' : 'Mark Correct'}
+                  </button>
+                  <input type="text" value="${opt}" oninput="updateOptionText(${qIndex}, ${oIndex}, this.value)" placeholder="Option ${oIndex + 1}" style="flex: 1;">
+                  <button type="button" class="btn-close" onclick="removeOption(${qIndex}, ${oIndex})" style="padding: 8px;">
+                    <span class="material-icons" style="font-size: 16px;">close</span>
+                  </button>
+                </div>
+                `;
+        }).join('')}
+              <button type="button" class="btn btn-secondary btn-sm" onclick="addOption(${qIndex})" style="align-self: flex-start; margin-top: 4px;">
+                <span class="material-icons" style="font-size: 14px; vertical-align: middle;">add</span> Add Option
+              </button>
+            </div>
+          </div>
+        `;
+        quizContainer.appendChild(qEl);
+      });
+      updateQuizData();
+    }
+
+    function updateQuizData() {
+      if (quizDataInput) {
+        quizDataInput.value = JSON.stringify(quizData);
+      }
+    }
+
+    // Initial render
+    renderQuiz();
+  });
+
+  function showPreview() {
+    const content = quill.root.innerHTML;
+    document.getElementById('previewContent').innerHTML = content;
+    document.getElementById('previewModal').classList.add('active');
+  }
+
+  function closePreview() {
+    document.getElementById('previewModal').classList.remove('active');
+  }
+</script>
+{% endblock %}
