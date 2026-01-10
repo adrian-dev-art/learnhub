@@ -1,0 +1,62 @@
+<!-- Course Categories Section -->
+{% load static %}
+
+<section id="courses" class="categories-section">
+  <div class="section-header slide-up">
+    <div class="section-label">EXPLORE</div>
+    <h2 class="section-title">Course Categories</h2>
+    <p class="section-subtitle">
+      Choose from our wide range of courses across technical and soft skills
+    </p>
+  </div>
+
+  <div class="categories-grid">
+    <div class="category-card slide-up" onclick="location.href='{% url 'catalog' %}'">
+      <div class="category-icon">
+        <span class="material-icons">code</span>
+      </div>
+      <h3 class="category-title">Programming</h3>
+      <p class="category-count">150+ Courses</p>
+    </div>
+
+    <div class="category-card slide-up" onclick="location.href='{% url 'catalog' %}'">
+      <div class="category-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+        <span class="material-icons">translate</span>
+      </div>
+      <h3 class="category-title">English</h3>
+      <p class="category-count">50+ Courses</p>
+    </div>
+
+    <div class="category-card slide-up" onclick="location.href='{% url 'catalog' %}'">
+      <div class="category-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+        <span class="material-icons">edit_note</span>
+      </div>
+      <h3 class="category-title">Writing</h3>
+      <p class="category-count">40+ Courses</p>
+    </div>
+
+    <div class="category-card slide-up" onclick="location.href='{% url 'catalog' %}'">
+      <div class="category-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+        <span class="material-icons">security</span>
+      </div>
+      <h3 class="category-title">Cybersecurity</h3>
+      <p class="category-count">30+ Courses</p>
+    </div>
+
+    <div class="category-card slide-up" onclick="location.href='{% url 'catalog' %}'">
+      <div class="category-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+        <span class="material-icons">groups</span>
+      </div>
+      <h3 class="category-title">Soft Skills</h3>
+      <p class="category-count">60+ Courses</p>
+    </div>
+
+    <div class="category-card slide-up" onclick="location.href='{% url 'catalog' %}'">
+      <div class="category-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">
+        <span class="material-icons">work</span>
+      </div>
+      <h3 class="category-title">Business</h3>
+      <p class="category-count">45+ Courses</p>
+    </div>
+  </div>
+</section>

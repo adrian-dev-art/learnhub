@@ -1,0 +1,88 @@
+{% extends 'shared/base.html' %}
+
+{% block title %}Course Catalog - LearnHub{% endblock %}
+{% block page_title %}Course Catalog{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="text-center mb-4" style="margin-bottom: var(--spacing-3xl);">
+    <h1
+      style="font-size: var(--font-size-4xl); font-weight: 800; margin-bottom: var(--spacing-md); color: var(--text-main);">
+      Explore Our Courses
+    </h1>
+    <p style="color: var(--text-muted); font-size: var(--font-size-xl); max-width: 700px; margin: 0 auto;">
+      Choose from our selection of interactive courses designed by industry experts
+    </p>
+  </div>
+
+  {% if courses %}
+  <div class="grid grid-3">
+    {% for course in courses %}
+    <div class="premium-card">
+      <div class="card-image-wrap">
+        <span class="badge-bestseller">Bestseller</span>
+        {% if course.thumbnail %}
+        <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="card-img">
+        {% else %}
+        <div class="card-img"
+          style="background: linear-gradient(135deg, #6366f1, #a78bfa); display: flex; align-items: center; justify-content: center;">
+          <span class="material-icons" style="color: white; font-size: 60px;">library_books</span>
+        </div>
+        {% endif %}
+        <div class="student-avatars">
+          <img src="https://i.pravatar.cc/150?u=5" class="avatar-stack" alt="Student">
+          <img src="https://i.pravatar.cc/150?u=6" class="avatar-stack" alt="Student">
+          <img src="https://i.pravatar.cc/150?u=7" class="avatar-stack" alt="Student">
+        </div>
+      </div>
+      <div class="card-content">
+        <span class="category-badge">{{ course.get_level_display }}</span>
+        <h3 class="card-title">{{ course.title }}</h3>
+
+        <div class="rating-wrap">
+          <div class="stars">
+            <span class="material-icons">star</span>
+            <span class="material-icons">star</span>
+            <span class="material-icons">star</span>
+            <span class="material-icons">star</span>
+            <span class="material-icons">star</span>
+          </div>
+          <span class="rating-text">5.0 (85 Reviews)</span>
+        </div>
+
+        <div class="card-footer">
+          <div class="price-wrap">
+            <span class="current-price">Rp. {{ course.price|floatformat:0 }}</span>
+            <span class="old-price">Rp. {{ course.price|add:30|floatformat:0 }}</span>
+          </div>
+          <div class="lesson-count">
+            <span class="material-icons">menu_book</span>
+            <span>{{ course.modules.count }} Lesson{{ course.modules.count|pluralize }}</span>
+          </div>
+        </div>
+
+        <a href="{% url 'course_detail' course.id %}" class="btn btn-primary btn-sm"
+          style="margin-top: 20px; width: 100%;">
+          View Details
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card" style="padding: var(--spacing-4xl); text-align: center;">
+    <div
+      style="width: 120px; height: 120px; margin: 0 auto var(--spacing-xl); background: var(--gray-100); border-radius: var(--radius-2xl); display: flex; align-items: center; justify-content: center;">
+      <span class="material-icons" style="font-size: 5rem; color: var(--gray-400);">library_books</span>
+    </div>
+    <h3
+      style="color: var(--gray-700); font-size: var(--font-size-2xl); font-weight: 700; margin-bottom: var(--spacing-md);">
+      No courses available yet
+    </h3>
+    <p style="color: var(--gray-500); font-size: var(--font-size-lg);">
+      Check back soon for new courses!
+    </p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

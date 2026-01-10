@@ -1,0 +1,18 @@
+<!-- Landing Navigation -->
+{% load static %}
+
+<nav class="landing-nav">
+  <div class="nav-container">
+    <a href="/" class="nav-logo">
+      <span class="material-icons">school</span>
+      <span>LearnHub</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#courses">Courses</a></li>
+      <li><a href="#compiler">Try Compiler</a></li>
+      <li><a href="#mentors">Mentors</a></li>
+      <li><a href="#testimonials">Reviews</a></li>
+    </ul>
+    <a href="{% url 'login' %}" class="nav-cta">Get Started</a>
+  </div>
+</nav>

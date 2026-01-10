@@ -1,0 +1,35 @@
+<!-- Mentors Section -->
+{% load static %}
+
+<section id="mentors" class="mentor-section">
+  <div class="section-header slide-up">
+    <div class="section-label">OUR TEAM</div>
+    <h2 class="section-title">Learn from Expert Mentors</h2>
+    <p class="section-subtitle">
+      Industry professionals with years of real-world experience
+    </p>
+  </div>
+
+  <div class="mentor-grid">
+    {% for mentor in mentors %}
+    <div class="mentor-card slide-up">
+      {% if mentor.avatar %}
+      <img src="{{ mentor.avatar.url }}" alt="{{ mentor.user.get_full_name }}" class="mentor-avatar">
+      {% else %}
+      <div class="mentor-avatar-placeholder">
+        {{ mentor.user.get_full_name|slice:":1" }}
+      </div>
+      {% endif %}
+      <h3 class="mentor-name">{{ mentor.user.get_full_name }}</h3>
+      <p class="mentor-role">{{ mentor.expertise }}</p>
+      <p class="mentor-bio">{{ mentor.bio|truncatewords:20 }}</p>
+    </div>
+    {% empty %}
+    <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.5);">
+      <span class="material-icons"
+        style="font-size: 64px; color: rgba(255,255,255,0.2); margin-bottom: 20px; display: block;">people</span>
+      <p style="font-size: 18px;">Our mentors will be available soon</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>

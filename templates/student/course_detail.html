@@ -1,0 +1,154 @@
+{% extends 'shared/base.html' %}
+
+{% block title %}{{ course.title }} - LearnHub{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="course-header-grid">
+    <!-- Course Details -->
+    <div class="course-info-section">
+      <div class="badge-group">
+        <span class="badge-premium">
+          <span class="material-icons">signal_cellular_alt</span>
+          {{ course.get_level_display }}
+        </span>
+        <span class="badge-premium">
+          <span class="material-icons">schedule</span>
+          {{ course.duration_hours }} hours
+        </span>
+        {% if enrollment and progress_percentage == 100 %}
+        <span class="badge-success-premium">
+          <span class="material-icons">verified</span>
+          Completed
+        </span>
+        {% endif %}
+      </div>
+
+      <h1 class="course-title">{{ course.title }}</h1>
+      <p class="course-description">{{ course.description }}</p>
+
+      <!-- Course Progress (Enrolled Only) -->
+      {% if enrollment %}
+      <div class="progress-card mb-4">
+        <div class="progress-header">
+          <span class="progress-label">Your Progress</span>
+          <span class="progress-value">{{ progress_percentage }}%</span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" style="--progress: {{ progress_percentage }}%"></div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="content-card">
+        <div class="card-header-premium">
+          <span class="material-icons">view_list</span>
+          <h2>Course Content</h2>
+        </div>
+
+        {% if modules %}
+        <div class="module-list-premium">
+          {% for module in modules %}
+          <div class="module-item-premium">
+            <div class="module-icon">
+              <span class="material-icons">
+                {% if module.content_type == 'code' %}code
+                {% elif module.content_type == 'video' %}play_circle
+                {% elif module.content_type == 'image' %}image
+                {% else %}article{% endif %}
+              </span>
+            </div>
+            <div class="module-details">
+              <div class="module-title-row">
+                <span class="module-title">{{ module.title }}</span>
+                {% if forloop.first and not enrollment %}
+                <span class="badge-preview">Free Preview</span>
+                {% endif %}
+              </div>
+              <span class="module-meta" style="font-size: var(--font-size-xs); color: var(--text-muted);">{{
+                module.get_content_type_display }}</span>
+            </div>
+            {% if forloop.first and not enrollment %}
+            <a href="{% url 'course_viewer' enrollment_id=0 %}?preview=true&course_id={{ course.id }}"
+              class="btn-preview">
+              <span class="material-icons">visibility</span>
+              Preview
+            </a>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Enrollment Sidebar -->
+    <div class="enrollment-sidebar-container">
+      <div class="enrollment-card-premium">
+        {% if course.thumbnail %}
+        <div class="thumbnail-container">
+          <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="course-thumbnail">
+        </div>
+        {% else %}
+        <div class="thumbnail-placeholder">
+          <span class="material-icons">school</span>
+        </div>
+        {% endif %}
+
+        <div class="card-body-premium">
+          <div class="price-tag">Rp. {{ course.price|floatformat:0 }}</div>
+
+          {% if enrollment %}
+          {% if progress_percentage == 0 %}
+          <a href="{% url 'course_viewer' enrollment.id %}" class="btn-primary-premium mb-3">
+            <span class="material-icons">play_arrow</span>
+            <span>Start Learning</span>
+          </a>
+          {% elif progress_percentage < 100 %} <a href="{% url 'course_viewer' enrollment.id %}"
+            class="btn-primary-premium mb-3">
+            <span class="material-icons">play_arrow</span>
+            <span>Continue Learning</span>
+            </a>
+            {% else %}
+            <a href="{% url 'course_viewer' enrollment.id %}" class="btn-primary-premium mb-3">
+              <span class="material-icons">replay</span>
+              <span>Review Course</span>
+            </a>
+            {% endif %}
+
+            {% if certificate %}
+            <a href="{% url 'download_certificate' certificate.id %}" class="btn-outline-premium">
+              <span class="material-icons">file_download</span>
+              <span>Download Certificate</span>
+            </a>
+            {% endif %}
+            {% else %}
+            <a href="{% url 'payment' course.id %}" class="btn-primary-premium">
+              <span class="material-icons">shopping_cart</span>
+              <span>Enroll Now</span>
+            </a>
+            {% endif %}
+
+            <div class="course-features mt-4">
+              <div class="feature-item"
+                style="display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm); color: var(--text-muted); font-size: var(--font-size-sm);">
+                <span class="material-icons" style="color: var(--success);">check_circle</span>
+                <span>Interactive code exercises</span>
+              </div>
+              <div class="feature-item"
+                style="display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm); color: var(--text-muted); font-size: var(--font-size-sm);">
+                <span class="material-icons" style="color: var(--success);">check_circle</span>
+                <span>Video tutorials</span>
+              </div>
+              <div class="feature-item"
+                style="display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm); color: var(--text-muted); font-size: var(--font-size-sm);">
+                <span class="material-icons" style="color: var(--success);">check_circle</span>
+                <span>Certificate of completion</span>
+              </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

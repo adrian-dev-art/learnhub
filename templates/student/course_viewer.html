@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'shared/base.html' %}
 {% load static %}
 
 {% block title %}{{ course.title }} - Course Viewer{% endblock %}
@@ -7,88 +7,83 @@
 <div class="viewer-container">
   <!-- Sidebar with modules -->
   <div class="viewer-sidebar">
-    <div class="sidebar-header">
-      <h2 class="course-title">{{ course.title }}</h2>
-      <div class="progress-container">
-        <div class="progress-bar" style="--progress: {{ enrollment.progress_percentage|default:0 }}%"></div>
-      </div>
-      <div class="progress-stats">
-        <span class="material-icons">analytics</span>
-        <span>{{ completed_modules|length }} / {{ modules|length }} Modules</span>
+    <div class="sidebar-header" style="padding: var(--spacing-lg); border-bottom: 1px solid var(--border-color);">
+      <h2 class="course-title" style="font-size: var(--font-size-lg); margin-bottom: var(--spacing-sm);">{{ course.title
+        }}</h2>
+      <div class="progress-card" style="padding: var(--spacing-sm); background: transparent; border: none;">
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" style="--progress: {{ enrollment.progress_percentage|default:0 }}%"></div>
+        </div>
+        <div class="progress-stats"
+          style="margin-top: var(--spacing-xs); font-size: var(--font-size-xs); color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
+          <span class="material-icons" style="font-size: 16px;">analytics</span>
+          <span>{{ completed_modules|length }} / {{ modules|length }} Modules</span>
+        </div>
       </div>
     </div>
 
-    <div class="module-list">
+    <div class="module-list" style="flex: 1; overflow-y: auto; padding: var(--spacing-sm);">
       {% for module in modules %}
-      {# Navigation Logic: Locked if not completed AND not the next incomplete module #}
       {% if not module.is_completed and module.id != first_incomplete.id and not is_preview %}
-      <div class="module-item locked" title="Complete previous modules to unlock">
-        <div class="module-status">
-          <span class="material-icons status-icon">lock</span>
-        </div>
+      <div class="module-item locked"
+        style="display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-md); opacity: 0.5; cursor: not-allowed;">
+        <span class="material-icons">lock</span>
         <div class="module-info">
-          <div class="module-title">{{ module.title }}</div>
-          <div class="module-meta">{{ module.get_content_type_display }}</div>
+          <div class="module-title" style="font-size: var(--font-size-sm); font-weight: 600;">{{ module.title }}</div>
+          <div class="module-meta" style="font-size: var(--font-size-xs); color: var(--text-muted);">{{
+            module.get_content_type_display }}</div>
         </div>
       </div>
       {% else %}
       <a href="?module_id={{ module.id }}{% if is_preview %}&preview=true&course_id={{ course.id }}{% endif %}"
-        class="module-item {% if module.is_current %}active{% endif %}">
-        <div class="module-status">
-          <span class="material-icons status-icon {% if module.is_completed %}completed{% endif %}">
-            {% if module.is_completed %}
-            check_circle
-            {% elif module.content_type == 'assessment' %}
-            assignment
-            {% else %}
-            article
-            {% endif %}
-          </span>
-        </div>
+        class="module-item {% if module.is_current %}active{% endif %}"
+        style="display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-md); text-decoration: none; border-radius: var(--radius-lg); transition: all var(--transition-fast); {% if module.is_current %}background: var(--primary-light); color: var(--primary);{% else %}color: var(--text-main);{% endif %}">
+        <span class="material-icons {% if module.is_completed %}completed{% endif %}"
+          style="{% if module.is_completed %}color: var(--success);{% endif %}">
+          {% if module.is_completed %}check_circle
+          {% elif module.content_type == 'assessment' %}assignment
+          {% else %}article{% endif %}
+        </span>
         <div class="module-info">
-          <div class="module-title">{{ module.title }}</div>
-          <div class="module-meta">{{ module.get_content_type_display }}</div>
+          <div class="module-title" style="font-size: var(--font-size-sm); font-weight: 600;">{{ module.title }}</div>
+          <div class="module-meta" style="font-size: var(--font-size-xs); opacity: 0.7;">{{
+            module.get_content_type_display }}</div>
         </div>
-        {% if module.is_current %}
-        <div class="active-indicator"></div>
-        {% endif %}
       </a>
       {% endif %}
       {% endfor %}
     </div>
 
-    <div class="sidebar-footer">
+    <div class="sidebar-footer" style="padding: var(--spacing-lg); border-top: 1px solid var(--border-color);">
       {% if not is_preview %}
-      <a href="{% url 'assessment_view' enrollment.id %}" class="btn btn-primary assessment-btn">
+      <a href="{% url 'assessment_view' enrollment.id %}" class="btn-primary-premium"
+        style="padding: var(--spacing-md); font-size: var(--font-size-sm);">
         <span class="material-icons">assignment</span>
-        <span>Take Final Assessment</span>
+        <span>Final Assessment</span>
       </a>
-      {% else %}
-      <button class="btn btn-primary assessment-btn" disabled>
-        <span class="material-icons">assignment</span>
-        <span>Final Assessment (Preview)</span>
-      </button>
       {% endif %}
     </div>
   </div>
 
   <!-- Main content area -->
   <div class="viewer-main">
-    <div class="content-wrapper">
-      <div class="content-header animate-fade-in">
-        <div class="breadcrumb">
-          <a href="{% url 'catalog' %}">Catalog</a>
-          <span class="material-icons">chevron_right</span>
+    <div class="content-wrapper" style="max-width: 800px; margin: 0 auto;">
+      <div class="content-header animate-fade-in" style="margin-bottom: var(--spacing-2xl);">
+        <div class="breadcrumb"
+          style="display: flex; align-items: center; gap: 4px; font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: var(--spacing-md);">
+          <a href="{% url 'catalog' %}" style="color: inherit; text-decoration: none;">Catalog</a>
+          <span class="material-icons" style="font-size: 14px;">chevron_right</span>
           <span>{{ course.title }}</span>
         </div>
-        <h1 class="module-display-title">{{ current_module.title }}</h1>
-        <div class="module-type-badge">
-          <span class="material-icons">
-            {% if current_module.content_type == 'assessment' %}assignment{% else %}description{% endif %}
-          </span>
+        <h1 class="module-display-title"
+          style="font-size: var(--font-size-3xl); font-weight: 800; color: var(--text-main); margin-bottom: var(--spacing-sm);">
+          {{ current_module.title }}</h1>
+        <div class="badge-premium">
+          <span class="material-icons">description</span>
           <span>{{ current_module.get_content_type_display }}</span>
         </div>
       </div>
+
       <div id="content-viewer" class="rich-content">
         {{ current_module.content_html|safe }}
       </div>
@@ -97,68 +92,53 @@
       {{ current_module.content|json_script:"module-content-data" }}
 
       {% if current_module.content_type == 'code' %}
-      <div class="code-exercise-container" data-language="{{ current_module.language|default:'python' }}">
-        <div class="editor-card">
-          <div class="editor-header">
-            <div class="editor-tabs">
-              <div class="tab active">
-                <span class="material-icons">
-                  {% if current_module.language == 'javascript' %}javascript
-                  {% elif current_module.language == 'html' %}html
-                  {% else %}python{% endif %}
-                </span>
-                <span>
-                  {% if current_module.language == 'javascript' %}script.js
-                  {% elif current_module.language == 'html' %}index.html
-                  {% else %}main.py{% endif %}
-                </span>
-              </div>
+      <div class="code-exercise-container" data-language="{{ current_module.language|default:'python' }}"
+        style="margin-top: var(--spacing-2xl);">
+        <div class="content-card" style="padding: 0; overflow: hidden; background: #1e1e1e;">
+          <div class="editor-header"
+            style="background: #252526; padding: var(--spacing-sm) var(--spacing-lg); display: flex; justify-content: space-between; align-items: center;">
+            <div class="tab active"
+              style="color: #fff; display: flex; align-items: center; gap: 8px; font-size: var(--font-size-sm);">
+              <span class="material-icons" style="color: #358ccb;">code</span>
+              <span>main.py</span>
             </div>
-            <button onclick="runCode()" class="btn-run">
+            <button onclick="runCode()" class="btn-primary-premium"
+              style="padding: var(--spacing-xs) var(--spacing-md); font-size: var(--font-size-xs); width: auto; background: var(--success);">
               <span class="material-icons">play_arrow</span>
               <span>Run Code</span>
             </button>
           </div>
-          <div class="editor-body">
-            <textarea id="codeEditor"
-              spellcheck="false">{{ current_module.starter_code|default:"# Write your code here\nprint('Hello, World!')" }}</textarea>
-          </div>
+          <textarea id="codeEditor" spellcheck="false"
+            style="width: 100%; min-height: 300px; background: transparent; color: #9cdcfe; border: none; padding: var(--spacing-lg); font-family: var(--font-mono); font-size: 14px; outline: none; resize: vertical;">{{ current_module.starter_code|default:"# Write your code here\nprint('Hello, World!')" }}</textarea>
         </div>
-
-        <div id="output" class="output-card" style="display: none;">
-        </div>
-        <div class="output-body">
-          <pre id="outputContent"></pre>
+        <div id="output" class="content-card"
+          style="display: none; background: #0f172a; border-color: #334155; padding: var(--spacing-lg);">
+          <pre id="outputContent"
+            style="margin: 0; color: #e2e8f0; font-family: var(--font-mono); font-size: 13px; white-space: pre-wrap;"></pre>
         </div>
       </div>
       {% endif %}
 
-      <!-- Module Quiz Section -->
-      {% if current_module.quiz_data %}
-      <div class="module-quiz-container" style="margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 32px;">
-        <h3 style="margin-bottom: 24px; color: #1e293b; font-weight: 700;">Knowledge Check</h3>
-        <div id="module-quiz-root"></div>
-        {{ current_module.quiz_data|json_script:"module-quiz-data" }}
-      </div>
-      {% endif %}
-
-      <div class="content-footer animate-fade-in">
+      <div class="content-footer"
+        style="margin-top: var(--spacing-4xl); padding-top: var(--spacing-2xl); border-top: 1px solid var(--border-color); display: flex; justify-content: center;">
         {% if current_module.id != modules.last.id %}
         {% if is_preview %}
         <a href="?module_id={{ current_module.id|add:1 }}&preview=true&course_id={{ course.id }}"
-          class="btn btn-primary">
+          class="btn-primary-premium" style="width: auto; padding: var(--spacing-md) var(--spacing-2xl);">
           <span>Next Lesson</span>
           <span class="material-icons">arrow_forward</span>
         </a>
         {% else %}
-        <button class="btn btn-primary" onclick="markCompleteAndNext({{ current_module.id }})">
+        <button class="btn-primary-premium" onclick="markCompleteAndNext({{ current_module.id }})"
+          style="width: auto; padding: var(--spacing-md) var(--spacing-2xl);">
           <span>Next Lesson</span>
           <span class="material-icons">arrow_forward</span>
         </button>
         {% endif %}
         {% else %}
         {% if not is_preview %}
-        <a href="{% url 'assessment_view' enrollment.id %}" class="btn btn-primary">
+        <a href="{% url 'assessment_view' enrollment.id %}" class="btn-primary-premium"
+          style="width: auto; padding: var(--spacing-md) var(--spacing-2xl);">
           <span>Take Final Assessment</span>
           <span class="material-icons">assignment_turned_in</span>
         </a>
@@ -168,582 +148,9 @@
     </div>
   </div>
 </div>
+{% endblock %}
 
-<style>
-  :root {
-    --sidebar-width: 320px;
-    --header-height: 80px;
-    --editor-bg: #1e1e1e;
-    --editor-fg: #d4d4d4;
-    --accent-color: #6366f1;
-  }
-
-  .viewer-container {
-    display: flex;
-    height: calc(100vh - var(--header-height));
-    background: #f8fafc;
-  }
-
-  /* Sidebar Styling */
-  .viewer-sidebar {
-    width: var(--sidebar-width);
-    background: white;
-    border-right: 1px solid #e2e8f0;
-    display: flex;
-    flex-direction: column;
-    z-index: 10;
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02);
-  }
-
-  .sidebar-header {
-    padding: 24px;
-    border-bottom: 1px solid #f1f5f9;
-  }
-
-  .course-title {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 16px;
-    line-height: 1.4;
-  }
-
-  .progress-container {
-    height: 6px;
-    background: #f1f5f9;
-    border-radius: 3px;
-    margin-bottom: 12px;
-    overflow: hidden;
-  }
-
-  .progress-bar {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent-color), #818cf8);
-    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    width: var(--progress, 0%);
-  }
-
-  .progress-stats {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.85rem;
-    color: #64748b;
-    font-weight: 500;
-  }
-
-  .module-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 12px;
-  }
-
-  .module-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px 16px;
-    border-radius: 12px;
-    margin-bottom: 4px;
-    text-decoration: none;
-    color: #475569;
-    transition: all 0.2s ease;
-    position: relative;
-  }
-
-  .module-item:hover {
-    background: #f1f5f9;
-    color: #1e293b;
-  }
-
-  .module-item.active {
-    background: #eef2ff;
-    color: var(--accent-color);
-  }
-
-  .module-item.locked {
-    opacity: 0.6;
-    cursor: not-allowed;
-    background: #f8fafc;
-  }
-
-  .module-item.locked:hover {
-    background: #f8fafc;
-    color: #94a3b8;
-  }
-
-  .status-icon {
-    font-size: 20px;
-    color: #94a3b8;
-  }
-
-  .status-icon.completed {
-    color: #10b981;
-  }
-
-  .module-item.active .status-icon:not(.completed) {
-    color: var(--accent-color);
-  }
-
-  .module-info {
-    flex: 1;
-  }
-
-  .module-title {
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin-bottom: 2px;
-  }
-
-  .module-meta {
-    font-size: 0.75rem;
-    opacity: 0.7;
-  }
-
-  .active-indicator {
-    position: absolute;
-    left: 0;
-    top: 12px;
-    bottom: 12px;
-    width: 4px;
-    background: var(--accent-color);
-    border-radius: 0 4px 4px 0;
-  }
-
-  .sidebar-footer {
-    padding: 20px;
-    border-top: 1px solid #f1f5f9;
-  }
-
-  .assessment-btn {
-    width: 100%;
-    height: 48px;
-    border-radius: 12px;
-    font-weight: 600;
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
-  }
-
-  /* Main Content Styling */
-  .viewer-main {
-    flex: 1;
-    overflow-y: auto;
-    padding: 40px;
-  }
-
-  .content-wrapper {
-    max-width: 860px;
-    margin: 0 auto;
-  }
-
-  .breadcrumb {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.85rem;
-    color: #64748b;
-    margin-bottom: 16px;
-  }
-
-  .breadcrumb a {
-    color: inherit;
-    text-decoration: none;
-  }
-
-  .breadcrumb a:hover {
-    color: var(--accent-color);
-  }
-
-  .breadcrumb .material-icons {
-    font-size: 16px;
-  }
-
-  .module-display-title {
-    font-size: 2.25rem;
-    font-weight: 800;
-    color: #0f172a;
-    margin-bottom: 16px;
-    letter-spacing: -0.025em;
-  }
-
-  .module-type-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 14px;
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #475569;
-    margin-bottom: 40px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-  }
-
-  /* Rich Content Styling */
-  .rich-content {
-    font-size: 1.15rem;
-    line-height: 1.85;
-    color: #334155;
-    font-family: 'Inter', sans-serif;
-  }
-
-  .rich-content h1,
-  .rich-content h2,
-  .rich-content h3 {
-    color: #0f172a;
-    margin-top: 2.5rem;
-    margin-bottom: 1.25rem;
-    font-weight: 800;
-    line-height: 1.3;
-  }
-
-  .rich-content h1 {
-    font-size: 2.5rem;
-  }
-
-  .rich-content h2 {
-    font-size: 1.85rem;
-    border-bottom: 2px solid #f1f5f9;
-    padding-bottom: 0.5rem;
-  }
-
-  .rich-content h3 {
-    font-size: 1.4rem;
-  }
-
-  .rich-content p {
-    margin-bottom: 1.5rem;
-  }
-
-  .rich-content ul,
-  .rich-content ol {
-    padding-left: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .rich-content li {
-    margin-bottom: 0.5rem;
-  }
-
-  .rich-content blockquote {
-    border-left: 4px solid var(--accent-color);
-    background: #f8fafc;
-    padding: 1.5rem 2rem;
-    border-radius: 0 16px 16px 0;
-    font-style: italic;
-    margin: 2rem 0;
-  }
-
-  .rich-content pre:not(.runnable-code) {
-    background: #0f172a;
-    padding: 1.5rem;
-    border-radius: 16px;
-    overflow-x: auto;
-    color: #e2e8f0;
-    font-family: 'Fira Code', monospace;
-    margin: 2rem 0;
-  }
-
-  .rich-content img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 20px;
-    margin: 2rem 0;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  }
-
-  /* Interactive Code Runner Styling */
-  .interactive-code-runner {
-    background: #0f172a;
-    border-radius: 16px;
-    overflow: hidden;
-    margin: 2rem 0;
-    border: 1px solid #334155;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
-  }
-
-  .runner-header {
-    background: #1e293b;
-    padding: 12px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #334155;
-  }
-
-  .runner-title {
-    color: #94a3b8;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .btn-run-small {
-    background: #10b981;
-    color: white;
-    border: none;
-    padding: 6px 14px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .btn-run-small:hover {
-    background: #059669;
-  }
-
-  .runner-editor textarea {
-    width: 100%;
-    min-height: 200px;
-    background: #0f172a;
-    color: #e2e8f0;
-    border: none;
-    padding: 20px;
-    font-family: 'Fira Code', monospace;
-    font-size: 14px;
-    line-height: 1.6;
-    resize: vertical;
-    outline: none;
-  }
-
-  .runner-io {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    border-top: 1px solid #334155;
-  }
-
-  .io-section {
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .io-section:first-child {
-    border-right: 1px solid #334155;
-  }
-
-  .io-section label {
-    background: #1e293b;
-    color: #94a3b8;
-    font-size: 0.75rem;
-    padding: 8px 16px;
-    font-weight: 600;
-    text-transform: uppercase;
-  }
-
-  .io-section textarea,
-  .io-section pre {
-    flex: 1;
-    background: #020617;
-    color: #e2e8f0;
-    border: none;
-    padding: 16px;
-    font-family: 'Fira Code', monospace;
-    font-size: 13px;
-    margin: 0;
-    min-height: 120px;
-    resize: none;
-    outline: none;
-    white-space: pre-wrap;
-  }
-
-  .io-section textarea::placeholder {
-    color: #475569;
-  }
-
-  /* Legacy Assessment Styling */
-  .code-exercise-container {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    margin-top: 40px;
-  }
-
-  .editor-card {
-    background: var(--editor-bg);
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  }
-
-  .editor-header {
-    background: #252526;
-    padding: 0 16px;
-    height: 48px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .editor-tabs {
-    display: flex;
-    height: 100%;
-  }
-
-  .tab {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0 20px;
-    color: #969696;
-    font-size: 0.85rem;
-    border-right: 1px solid #2d2d2d;
-    cursor: default;
-  }
-
-  .tab.active {
-    background: var(--editor-bg);
-    color: #fff;
-  }
-
-  .tab .material-icons {
-    font-size: 16px;
-    color: #358ccb;
-  }
-
-  .btn-run {
-    background: #10b981;
-    color: white;
-    border: none;
-    padding: 6px 16px;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .btn-run:hover {
-    background: #059669;
-    transform: translateY(-1px);
-  }
-
-  #codeEditor {
-    width: 100%;
-    min-height: 350px;
-    background: transparent;
-    color: #9cdcfe;
-    border: none;
-    padding: 24px;
-    font-family: 'Fira Code', 'JetBrains Mono', monospace;
-    font-size: 15px;
-    line-height: 1.6;
-    resize: vertical;
-    outline: none;
-  }
-
-  .output-card {
-    background: #0f172a;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-top: 12px;
-  }
-
-  .output-body {
-    padding: 20px;
-  }
-
-  #outputContent {
-    margin: 0;
-    font-family: 'Fira Code', monospace;
-    font-size: 14px;
-    line-height: 1.6;
-    color: #e2e8f0;
-    white-space: pre-wrap;
-  }
-
-  /* Footer Actions */
-  .content-footer {
-    margin-top: 60px;
-    padding-top: 40px;
-    border-top: 1px solid #e2e8f0;
-    display: flex;
-    justify-content: center;
-  }
-
-  /* Animations */
-  .animate-fade-in {
-    animation: fadeIn 0.6s ease-out;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-
-    to {
-      opacity: 1;
-    }
-  }
-
-  /* Quiz Styles */
-  .quiz-question {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 24px;
-  }
-
-  .quiz-question h4 {
-    margin-top: 0;
-    color: #334155;
-    font-size: 1.1rem;
-    margin-bottom: 16px;
-  }
-
-  .quiz-options {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .quiz-option {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    background: white;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .quiz-option:hover {
-    border-color: #94a3b8;
-    background: #f1f5f9;
-  }
-
-  .quiz-option.selected {
-    border-color: #6366f1;
-    background: #eef2ff;
-    color: #4338ca;
-  }
-
-  .quiz-option.correct {
-    border-color: #22c55e;
-    background: #f0fdf4;
-    color: #15803d;
-  }
-
-  .quiz-option.incorrect {
-    border-color: #ef4444;
-    background: #fef2f2;
-    color: #b91c1c;
-  }
-</style>
-
+{% block extra_js %}
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     const viewer = document.getElementById('content-viewer');
@@ -858,24 +265,24 @@
       }
     }
 
-  window.selectOption = function (qIndex, optIndex) {
-    if (submitted) return;
-    userAnswers[qIndex] = optIndex;
-    render();
-  };
+    window.selectOption = function (qIndex, optIndex) {
+      if (submitted) return;
+      userAnswers[qIndex] = optIndex;
+      render();
+    };
 
-  window.submitQuiz = function () {
-    submitted = true;
-    render();
-  };
+    window.submitQuiz = function () {
+      submitted = true;
+      render();
+    };
 
-  window.retryQuiz = function () {
-    userAnswers = {};
-    submitted = false;
-    render();
-  };
+    window.retryQuiz = function () {
+      userAnswers = {};
+      submitted = false;
+      render();
+    };
 
-  render();
+    render();
   }
 
   {% if not is_preview %}

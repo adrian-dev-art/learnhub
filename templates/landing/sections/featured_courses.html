@@ -1,0 +1,233 @@
+<!-- Featured Courses Section -->
+{% load static %}
+
+<style>
+  /* Course Card Styles */
+  .course-card-modern {
+    background: linear-gradient(145deg, #1e1e3f 0%, #2a2a4a 100%);
+    border-radius: 24px;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    border: 2px solid transparent;
+    cursor: pointer;
+  }
+
+  .course-card-modern:hover {
+    transform: translateY(-10px);
+    border-color: rgba(124, 58, 237, 0.6);
+    box-shadow: 0 25px 50px rgba(124, 58, 237, 0.2);
+  }
+
+  .course-thumbnail {
+    height: 240px;
+    background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+    position: relative;
+  }
+
+  .course-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+
+  .course-card-modern:hover .course-thumbnail img {
+    transform: scale(1.05);
+  }
+
+  .course-thumbnail-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(26, 26, 46, 0.9) 0%, transparent 60%);
+  }
+
+  .course-badges {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    right: 16px;
+    display: flex;
+    justify-content: space-between;
+    z-index: 2;
+  }
+
+  .course-level-badge {
+    padding: 8px 16px;
+    background: rgba(26, 26, 46, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #a78bfa;
+    text-transform: uppercase;
+    border: 1px solid rgba(167, 139, 250, 0.3);
+  }
+
+  .course-duration {
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+  }
+
+  .course-content {
+    padding: 24px;
+  }
+
+  .course-title-main {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 56px;
+  }
+
+  .course-description {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 72px;
+  }
+
+  .course-stats {
+    display: flex;
+    gap: 20px;
+    padding: 16px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 16px;
+  }
+
+  .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+  }
+
+  .stat-item .material-icons {
+    font-size: 18px;
+    color: #a78bfa;
+  }
+
+  .course-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .course-price-tag {
+    font-size: 32px;
+    font-weight: 900;
+    color: #7c3aed;
+  }
+
+  .course-modules-hint {
+    padding: 10px 18px;
+    background: rgba(124, 58, 237, 0.1);
+    border-radius: 10px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(124, 58, 237, 0.2);
+  }
+
+  .course-card-modern:hover .course-modules-hint {
+    background: rgba(124, 58, 237, 0.2);
+    color: #a78bfa;
+  }
+</style>
+
+<section class="categories-section" style="background: #0a0a0a; padding-top: 60px;">
+  <div class="section-header slide-up">
+    <div class="section-label">POPULAR</div>
+    <h2 class="section-title">Featured Courses</h2>
+    <p class="section-subtitle">Start learning with our most popular courses</p>
+  </div>
+
+  <div style="max-width: 1400px; margin: 0 auto; padding: 0 20px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 32px;">
+      {% for course in courses %}
+      <div class="course-card-modern" data-course-id="{{ course.id }}"
+        onclick="location.href='{% url 'course_detail' course.id %}'">
+
+        <div class="course-thumbnail">
+          {% if course.thumbnail %}
+          <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}">
+          {% else %}
+          <div style="display: flex; align-items: center; justify-content: center; height: 100%;">
+            <span class="material-icons" style="font-size: 96px; color: rgba(255,255,255,0.2);">menu_book</span>
+          </div>
+          {% endif %}
+          <div class="course-thumbnail-overlay"></div>
+
+          <div class="course-badges">
+            <div class="course-level-badge">{{ course.get_level_display }}</div>
+            <div class="course-duration">{{ course.duration_hours }}h</div>
+          </div>
+        </div>
+
+        <div class="course-content">
+          <h3 class="course-title-main">{{ course.title }}</h3>
+          <p class="course-description">{{ course.description|truncatewords:22 }}</p>
+
+          <div class="course-stats">
+            <div class="stat-item">
+              <span class="material-icons">people</span>
+              <span>{{ course.enrollment_set.count }} students</span>
+            </div>
+            <div class="stat-item">
+              <span class="material-icons">list</span>
+              <span>{{ course.total_modules|default:"0" }} modules</span>
+            </div>
+          </div>
+
+          <div class="course-bottom">
+            <div class="course-price-tag">${{ course.price }}</div>
+            <div class="course-modules-hint">Hover to preview</div>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div style="grid-column: 1 / -1; text-align: center; padding: 80px 20px; color: rgba(255,255,255,0.5);">
+        <span class="material-icons"
+          style="font-size: 80px; color: rgba(255,255,255,0.15); margin-bottom: 24px; display: block;">school</span>
+        <p style="font-size: 20px; font-weight: 600;">No courses available yet</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div style="text-align: center; margin-top: 60px;">
+      <a href="{% url 'catalog' %}" class="cta-primary">
+        <span>View All Courses</span>
+        <span class="material-icons">arrow_forward</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Module Data for Tooltip -->
+<script>
+  window.courseModulesData = {
+  {% for course in courses %}
+  { { course.id } }: [
+    {% for module in course.module_list %}
+  "{{ module.title|escapejs }}"{% if not forloop.last %}, {% endif %}
+  {% endfor %}
+  ]{% if not forloop.last %}, {% endif %}
+  {% endfor %}
+};
+</script>
+
+<script src="{% static 'js/course-effects.js' %}"></script>

@@ -5,6 +5,7 @@ urlpatterns = [
     # Home and catalog
     path('', views.home, name='home'),
     path('catalog/', views.catalog, name='catalog'),
+    path('dashboard/', views.student_dashboard, name='student_dashboard'),
     path('course/<int:course_id>/', views.course_detail, name='course_detail'),
 
     # Enrollment and payment

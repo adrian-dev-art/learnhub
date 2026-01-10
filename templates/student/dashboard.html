@@ -1,0 +1,177 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - LearnHub{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Welcome Header -->
+  <div class="dashboard-section" style="margin-bottom: var(--spacing-2xl);">
+    <h1
+      style="font-size: var(--font-size-3xl); font-weight: 800; color: var(--text-main); margin-bottom: var(--spacing-xs);">
+      Welcome back, {{ user.first_name|default:user.username }}! 👋
+    </h1>
+    <p style="color: var(--text-muted); font-size: var(--font-size-lg);">
+      Ready to continue your learning journey?
+    </p>
+  </div>
+
+  <!-- Stats Overview -->
+  <div class="grid grid-3 dashboard-section">
+    <div class="stat-card">
+      <div class="stat-icon" style="background: var(--primary-light); color: var(--primary);">
+        <span class="material-icons">menu_book</span>
+      </div>
+      <div class="stat-info">
+        <h3>{{ enrollments.count }}</h3>
+        <p>Enrolled Courses</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #dcfce7; color: #10b981;">
+        <span class="material-icons">check_circle</span>
+      </div>
+      <div class="stat-info">
+        <h3>{{ enrollments|dictsort:"completed"|last|default:"0" }}</h3>
+        <p>Completed</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #fef3c7; color: #f59e0b;">
+        <span class="material-icons">stars</span>
+      </div>
+      <div class="stat-info">
+        <h3>{{ user.certificates_set.count|default:"0" }}</h3>
+        <p>Certificates</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Continue Learning -->
+  {% if enrollments %}
+  <div class="dashboard-section">
+    <div class="section-header-flex">
+      <h2>Continue Learning</h2>
+      <a href="{% url 'catalog' %}" style="color: var(--primary); font-weight: 600; text-decoration: none;">View All</a>
+    </div>
+    <div class="grid grid-2">
+      {% for enrollment in enrollments %}
+      <a href="{% url 'course_viewer' enrollment.id %}" class="course-card-horizontal">
+        {% if enrollment.course.thumbnail %}
+        <img src="{{ enrollment.course.thumbnail.url }}" alt="{{ enrollment.course.title }}" class="course-img">
+        {% else %}
+        <div class="course-img"
+          style="background: var(--primary-lighter); display: flex; align-items: center; justify-content: center;">
+          <span class="material-icons" style="color: var(--primary); font-size: 40px;">school</span>
+        </div>
+        {% endif %}
+        <div class="course-content">
+          <h3 class="course-title">{{ enrollment.course.title }}</h3>
+          <div class="course-meta">
+            <span>{{ enrollment.course.modules.count }} Modules</span>
+            <span>•</span>
+            <span>{{ enrollment.course.get_level_display }}</span>
+          </div>
+          <div class="progress-container">
+            <div class="progress-bar" style="width: {{ enrollment.progress_percentage }}%;"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+            <span style="font-size: 12px; color: var(--gray-500);">{{ enrollment.progress_percentage }}% Complete</span>
+            <span style="font-size: 14px; font-weight: 600; color: var(--primary);">Resume <span class="material-icons"
+                style="font-size: 14px; vertical-align: middle;">play_arrow</span></span>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Best Sellers / Recommendations -->
+  <div class="dashboard-section">
+    <div class="section-header-flex">
+      <h2>Best Sellers</h2>
+      <a href="{% url 'catalog' %}" style="color: var(--primary); font-weight: 600; text-decoration: none;">Explore
+        Catalog</a>
+    </div>
+    <div class="grid grid-3">
+      {% for course in best_sellers %}
+      <div class="premium-card">
+        <div class="card-image-wrap">
+          <span class="badge-bestseller">Bestseller</span>
+          {% if course.thumbnail %}
+          <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="card-img">
+          {% else %}
+          <div class="card-img"
+            style="background: linear-gradient(135deg, #6366f1, #a78bfa); display: flex; align-items: center; justify-content: center;">
+            <span class="material-icons" style="color: white; font-size: 60px;">library_books</span>
+          </div>
+          {% endif %}
+          <div class="student-avatars">
+            <img src="https://i.pravatar.cc/150?u=1" class="avatar-stack" alt="Student">
+            <img src="https://i.pravatar.cc/150?u=2" class="avatar-stack" alt="Student">
+            <img src="https://i.pravatar.cc/150?u=3" class="avatar-stack" alt="Student">
+            <img src="https://i.pravatar.cc/150?u=4" class="avatar-stack" alt="Student">
+          </div>
+        </div>
+        <div class="card-content">
+          <span class="category-badge">{{ course.get_level_display }}</span>
+          <h3 class="card-title">{{ course.title }}</h3>
+
+          <div class="rating-wrap">
+            <div class="stars">
+              <span class="material-icons">star</span>
+              <span class="material-icons">star</span>
+              <span class="material-icons">star</span>
+              <span class="material-icons">star</span>
+              <span class="material-icons">star_half</span>
+            </div>
+            <span class="rating-text">4.5 (120 Reviews)</span>
+          </div>
+
+          <div class="card-footer">
+            <div class="price-wrap">
+              <span class="current-price">Rp. {{ course.price|floatformat:0 }}</span>
+              <span class="old-price">Rp. {{ course.price|add:49|floatformat:0 }}</span>
+            </div>
+            <div class="lesson-count">
+              <span class="material-icons">menu_book</span>
+              <span>{{ course.modules.count }} Lesson{{ course.modules.count|pluralize }}</span>
+            </div>
+          </div>
+
+          <a href="{% url 'course_detail' course.id %}" class="btn btn-primary btn-sm"
+            style="margin-top: 20px; width: 100%;">
+            View Details
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Related Courses -->
+  <div class="dashboard-section">
+    <div class="section-header-flex">
+      <h2>Related for You</h2>
+    </div>
+    <div class="grid grid-3">
+      {% for course in related_courses %}
+      <div class="card">
+        <div class="card-body">
+          <h3 class="card-title" style="font-size: var(--font-size-base);">{{ course.title }}</h3>
+          <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--spacing-md);">
+            <span style="color: var(--gray-500); font-size: var(--font-size-sm);">{{ course.duration_hours }}h
+              total</span>
+            <a href="{% url 'course_detail' course.id %}"
+              style="color: var(--primary); text-decoration: none; font-weight: 600; font-size: var(--font-size-sm);">View</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

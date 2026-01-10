@@ -27,7 +27,17 @@ def mentor_required(view_func):
 
 def home(request):
     """Home page"""
-    return render(request, 'home.html')
+    try:
+        # Get featured courses with modules (limit to 6)
+        courses = Course.objects.all()[:6]
+        # Attach modules to each course
+        for course in courses:
+            course.module_list = course.modules.all()[:5]  # First 5 modules
+            course.total_modules = course.modules.count()
+    except Exception as e:
+        print(f"Database error: {e}")
+        courses = []
+    return render(request, 'landing/home.html', {'courses': courses})
 
 
 def catalog(request):
@@ -37,7 +47,42 @@ def catalog(request):
     except Exception as e:
         print(f"Database error: {e}")
         courses = []
-    return render(request, 'catalog.html', {'courses': courses})
+    return render(request, 'student/catalog.html', {'courses': courses})
+
+
+@login_required
+def student_dashboard(request):
+    """Student dashboard with owned courses and recommendations"""
+    try:
+        # Get owned courses (completed payments)
+        enrollments = Enrollment.objects.filter(
+            user=request.user,
+            payment_status='completed'
+        ).select_related('course')
+
+        # Get all courses for catalog/recommendations
+        all_courses = Course.objects.all()
+
+        # Dummy data for "Best Seller" and "Related" for now
+        best_sellers = all_courses.order_by('-created_at')[:3]
+        related_courses = all_courses.order_by('?')[:3]
+
+        context = {
+            'enrollments': enrollments,
+            'best_sellers': best_sellers,
+            'related_courses': related_courses,
+            'all_courses': all_courses
+        }
+    except Exception as e:
+        print(f"Dashboard error: {e}")
+        context = {
+            'enrollments': [],
+            'best_sellers': [],
+            'related_courses': [],
+            'all_courses': []
+        }
+
+    return render(request, 'student/dashboard.html', context)
 
 
 def course_detail(request, course_id):
@@ -80,7 +125,7 @@ def course_detail(request, course_id):
         'certificate': certificate,
         'already_enrolled': enrollment is not None
     }
-    return render(request, 'course_detail.html', context)
+    return render(request, 'student/course_detail.html', context)
 
 
 def payment(request, course_id):
@@ -114,19 +159,19 @@ def payment(request, course_id):
             # Validate
             if not all([username, email, password1, password2, first_name, last_name]):
                 messages.error(request, 'Please fill in all required fields.')
-                return render(request, 'payment.html', {'course': course})
+                return render(request, 'student/payment.html', {'course': course})
 
             if password1 != password2:
                 messages.error(request, 'Passwords do not match.')
-                return render(request, 'payment.html', {'course': course})
+                return render(request, 'student/payment.html', {'course': course})
 
             if User.objects.filter(username=username).exists():
                 messages.error(request, 'Username already exists.')
-                return render(request, 'payment.html', {'course': course})
+                return render(request, 'student/payment.html', {'course': course})
 
             if User.objects.filter(email=email).exists():
                 messages.error(request, 'Email already registered.')
-                return render(request, 'payment.html', {'course': course})
+                return render(request, 'student/payment.html', {'course': course})
 
             # Create user
             user = User.objects.create_user(
@@ -179,7 +224,7 @@ def payment(request, course_id):
         'course': course,
         'profile_form': profile_form
     }
-    return render(request, 'payment.html', context)
+    return render(request, 'student/payment.html', context)
 
 
 @login_required
@@ -256,7 +301,7 @@ def course_viewer(request, enrollment_id):
         'first_incomplete': first_incomplete,
         'is_preview': is_preview
     }
-    return render(request, 'course_viewer.html', context)
+    return render(request, 'student/course_viewer.html', context)
 
 
 @login_required
@@ -380,7 +425,7 @@ def assessment_view(request, enrollment_id):
         'assessment': assessment,
         'form': form
     }
-    return render(request, 'assessment.html', context)
+    return render(request, 'student/assessment.html', context)
 
 
 @login_required
@@ -398,7 +443,7 @@ def certificate_view(request, enrollment_id):
         'certificate': certificate,
         'enrollment': enrollment
     }
-    return render(request, 'certificate.html', context)
+    return render(request, 'student/certificate.html', context)
 
 
 @login_required
@@ -429,7 +474,7 @@ def register(request):
     else:
         form = CustomUserCreationForm()
 
-    return render(request, 'register.html', {'form': form})
+    return render(request, 'landing/register.html', {'form': form})
 
 
 def login_view(request):
@@ -447,7 +492,7 @@ def login_view(request):
         else:
             messages.error(request, 'Invalid username or password.')
 
-    return render(request, 'login.html')
+    return render(request, 'landing/login.html')
 
 
 def logout_view(request):

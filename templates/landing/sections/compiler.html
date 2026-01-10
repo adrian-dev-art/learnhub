@@ -1,0 +1,53 @@
+<!-- Compiler Section - Modular Component -->
+{% load static %}
+
+<section id="compiler" class="compiler-section">
+  <div class="section-header slide-up">
+    <div class="section-label">TRY IT NOW</div>
+    <h2 class="section-title">Interactive Code Compiler</h2>
+    <p class="section-subtitle">Write and run code directly in your browser</p>
+  </div>
+
+  <div class="compiler-container slide-up">
+    <div class="compiler-tabs">
+      <div class="lang-tab active" data-lang="javascript">JavaScript</div>
+      <div class="lang-tab" data-lang="python">Python</div>
+    </div>
+
+    <div class="compiler-body">
+      <div class="code-editor-pane active" data-lang="javascript">
+        <textarea placeholder="// Try JavaScript code here
+console.log('Hello, World!');
+
+// Example: Calculate sum
+function sum(a, b) {
+  return a + b;
+}
+
+console.log('5 + 3 =', sum(5, 3));"></textarea>
+      </div>
+
+      <div class="code-editor-pane" data-lang="python">
+        <textarea placeholder="# Try Python code here
+print('Hello, World!')
+
+# Example: Calculate sum
+def sum(a, b):
+    return a + b
+
+print('5 + 3 =', sum(5, 3))"></textarea>
+      </div>
+
+      <div class="output-pane">
+        <div class="output-header">
+          <span class="output-title">Output</span>
+          <button id="runCode" class="run-btn">
+            <span class="material-icons" style="font-size: 16px;">play_arrow</span>
+            <span>Run</span>
+          </button>
+        </div>
+        <div id="codeOutput">Click "Run" to execute code...</div>
+      </div>
+    </div>
+  </div>
+</section>

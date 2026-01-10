@@ -1,0 +1,22 @@
+{% extends 'landing/landing_base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/landing.css' %}?v=1.5">
+{% endblock %}
+
+{% block content %}
+<!-- All sections as modular includes -->
+{% include 'landing/sections/navigation.html' %}
+{% include 'landing/sections/modern_hero.html' %}
+{% include 'landing/sections/compiler.html' %}
+{% include 'landing/sections/course_categories.html' %}
+{% include 'landing/sections/mentors.html' %}
+{% include 'landing/sections/testimonials.html' %}
+{% include 'landing/sections/stats.html' %}
+{% include 'landing/sections/final_cta.html' %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/landing.js' %}"></script>
+{% endblock %}

@@ -110,10 +110,10 @@ class Enrollment(models.Model):
     @property
     def progress_percentage(self):
         """Calculate progress percentage"""
-        total_modules = Module.objects.filter(course_id=self.course_id).count()
+        total_modules = self.course.modules.count()
         if total_modules == 0:
             return 0
-        completed_count = len(self.progress.keys()) if self.progress else 0
+        completed_count = len(self.progress.get('completed_modules', [])) if self.progress else 0
         return int((completed_count / total_modules) * 100)
 
     def __str__(self):
