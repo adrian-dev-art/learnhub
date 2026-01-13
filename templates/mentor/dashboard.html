@@ -99,8 +99,9 @@
                 {% endif %}
                 <div>
                   <div style="font-weight: 600; color: var(--text-main);">{{ course.title }}</div>
-                  <div style="font-size: var(--font-size-xs); color: var(--text-muted);">{{ course.created_at|date:"M d,
-                    Y" }}</div>
+                  <div style="font-size: var(--font-size-xs); color: var(--text-muted);">
+                    {{ course.created_at|date:"M d, Y" }}
+                  </div>
                 </div>
               </div>
             </td>
@@ -112,8 +113,9 @@
               <div style="display: flex; align-items: center; gap: 6px; font-size: var(--font-size-sm);">
                 <span
                   style="width: 8px; height: 8px; border-radius: 50%; background: {% if course.is_active %}var(--success){% else %}var(--text-muted){% endif %};"></span>
-                <span style="color: {% if course.is_active %}var(--success){% else %}var(--text-muted){% endif %};">{{
-                  course.is_active|yesno:"Active,Inactive" }}</span>
+                <span style="color: {% if course.is_active %}var(--success){% else %}var(--text-muted){% endif %};">
+                  {{ course.is_active|yesno:"Active,Inactive" }}
+                </span>
               </div>
             </td>
             <td>

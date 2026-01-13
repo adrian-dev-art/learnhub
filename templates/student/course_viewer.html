@@ -8,8 +8,9 @@
   <!-- Sidebar with modules -->
   <div class="viewer-sidebar">
     <div class="sidebar-header" style="padding: var(--spacing-lg); border-bottom: 1px solid var(--border-color);">
-      <h2 class="course-title" style="font-size: var(--font-size-lg); margin-bottom: var(--spacing-sm);">{{ course.title
-        }}</h2>
+      <h2 class="course-title" style="font-size: var(--font-size-lg); margin-bottom: var(--spacing-sm);">
+        {{ course.title }}
+      </h2>
       <div class="progress-card" style="padding: var(--spacing-sm); background: transparent; border: none;">
         <div class="progress-bar-container">
           <div class="progress-bar-fill" style="--progress: {{ enrollment.progress_percentage|default:0 }}%"></div>
@@ -30,8 +31,9 @@
         <span class="material-icons">lock</span>
         <div class="module-info">
           <div class="module-title" style="font-size: var(--font-size-sm); font-weight: 600;">{{ module.title }}</div>
-          <div class="module-meta" style="font-size: var(--font-size-xs); color: var(--text-muted);">{{
-            module.get_content_type_display }}</div>
+          <div class="module-meta" style="font-size: var(--font-size-xs); color: var(--text-muted);">
+            {{ module.get_content_type_display }}
+          </div>
         </div>
       </div>
       {% else %}
@@ -46,8 +48,9 @@
         </span>
         <div class="module-info">
           <div class="module-title" style="font-size: var(--font-size-sm); font-weight: 600;">{{ module.title }}</div>
-          <div class="module-meta" style="font-size: var(--font-size-xs); opacity: 0.7;">{{
-            module.get_content_type_display }}</div>
+          <div class="module-meta" style="font-size: var(--font-size-xs); opacity: 0.7;">
+            {{ module.get_content_type_display }}
+          </div>
         </div>
       </a>
       {% endif %}

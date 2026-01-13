@@ -65,8 +65,9 @@
             </div>
             <div class="module-details">
               <div class="module-title">{{ module.title }}</div>
-              <div class="module-meta" style="font-size: var(--font-size-xs); color: var(--text-muted);">{{
-                module.get_content_type_display }} • Order: {{ module.order }}</div>
+              <div class="module-meta" style="font-size: var(--font-size-xs); color: var(--text-muted);">
+                {{ module.get_content_type_display }} • Order: {{ module.order }}
+              </div>
             </div>
             <div class="module-actions" style="display: flex; gap: 8px;">
               <a href="{% url 'mentor_module_edit' module.id %}" class="btn-preview" title="Edit">
@@ -101,13 +102,15 @@
               {{ enrollment.user.first_name|first }}{{ enrollment.user.last_name|first }}
             </div>
             <div style="flex: 1;">
-              <div style="font-weight: 600; color: var(--text-main); font-size: 14px;">{{ enrollment.user.get_full_name
-                }}</div>
+              <div style="font-weight: 600; color: var(--text-main); font-size: 14px;">
+                {{ enrollment.user.get_full_name }}
+              </div>
               <div class="progress-bar-container" style="height: 6px; margin-top: 4px;">
                 <div class="progress-bar-fill" style="--progress: {{ enrollment.calculated_progress }}%"></div>
               </div>
-              <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">{{ enrollment.calculated_progress
-                }}% Complete</div>
+              <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">
+                {{ enrollment.calculated_progress }}% Complete
+              </div>
             </div>
             <div class="status-badge">
               {% if enrollment.completed %}

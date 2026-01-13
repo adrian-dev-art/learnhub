@@ -115,8 +115,9 @@
             {{ user.first_name|first|upper|default:"U" }}
           </div>
           <div class="user-info">
-            <span class="user-name">{{ user.first_name|default:"User" }} {{ user.last_name|first|upper|default:""
-              }}</span>
+            <span class="user-name">
+              {{ user.first_name|default:"User" }} {{ user.last_name|first|upper|default:"" }}
+            </span>
             <span class="user-role">{% if user.is_mentor %}Mentor{% else %}Student{% endif %}</span>
           </div>
           <a href="{% url 'logout' %}" style="color: var(--text-muted); text-decoration: none;">

@@ -65,8 +65,9 @@
                 <span class="badge-preview">Free Preview</span>
                 {% endif %}
               </div>
-              <span class="module-meta" style="font-size: var(--font-size-xs); color: var(--text-muted);">{{
-                module.get_content_type_display }}</span>
+              <span class="module-meta" style="font-size: var(--font-size-xs); color: var(--text-muted);">
+                {{ module.get_content_type_display }}
+              </span>
             </div>
             {% if forloop.first and not enrollment %}
             <a href="{% url 'course_viewer' enrollment_id=0 %}?preview=true&course_id={{ course.id }}"
