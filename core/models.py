@@ -40,6 +40,13 @@ class Course(models.Model):
     def __str__(self):
         return self.title
 
+    @property
+    def display_price(self):
+        """Return price as Python Decimal, handling MongoDB Decimal128"""
+        if hasattr(self.price, 'to_decimal'):
+            return self.price.to_decimal()
+        return self.price
+
 
 class Module(models.Model):
     """Course module/lesson"""

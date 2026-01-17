@@ -1,5 +1,6 @@
 <!-- Featured Courses Section -->
 {% load static %}
+{% load humanize %}
 
 <style>
   /* Course Card Styles */
@@ -196,7 +197,7 @@
           </div>
 
           <div class="course-bottom">
-            <div class="course-price-tag">${{ course.price }}</div>
+            <div class="course-price-tag">Rp. {{ course.display_price|floatformat:0 }}</div>
             <div class="course-modules-hint">Hover to preview</div>
           </div>
         </div>
