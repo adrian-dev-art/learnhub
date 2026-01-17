@@ -1,0 +1,108 @@
+{% extends 'shared/base.html' %}
+
+{% block title %}Settings - LearnHub{% endblock %}
+{% block page_title %}Account Settings{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div style="max-width: 800px; margin: 0 auto;">
+
+    <!-- Profile Card -->
+    <div class="content-card" style="margin-bottom: var(--spacing-xl);">
+      <h2
+        style="font-size: var(--font-size-xl); font-weight: 700; color: var(--text-main); margin-bottom: var(--spacing-lg); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-md);">
+        Profile Information
+      </h2>
+
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="grid grid-2" style="gap: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
+          <div class="form-group">
+            <label class="form-label">First Name</label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+            <div style="color: var(--error); font-size: var(--font-size-sm); margin-top: 4px;">{{
+              form.first_name.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Last Name</label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+            <div style="color: var(--error); font-size: var(--font-size-sm); margin-top: 4px;">{{
+              form.last_name.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="grid grid-2" style="gap: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+            <div style="color: var(--error); font-size: var(--font-size-sm); margin-top: 4px;">{{ form.email.errors.0 }}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            {{ form.phone }}
+            {% if form.phone.errors %}
+            <div style="color: var(--error); font-size: var(--font-size-sm); margin-top: 4px;">{{ form.phone.errors.0 }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if user.is_mentor %}
+        <div class="form-group" style="margin-bottom: var(--spacing-lg);">
+          <label class="form-label">Bank Account Number (for Mentors)</label>
+          {{ form.bank_account_number }}
+          {% if form.bank_account_number.errors %}
+          <div style="color: var(--error); font-size: var(--font-size-sm); margin-top: 4px;">
+            {{ form.bank_account_number.errors.0 }}
+          </div>
+          {% endif %}
+          <p style="font-size: var(--font-size-xs); color: var(--text-muted); margin-top: 4px;">
+            Required for receiving payouts if you are a mentor.
+          </p>
+        </div>
+        {% endif %}
+
+        <div style="display: flex; justify-content: flex-end;">
+          <button type="submit" class="btn-primary-premium" style="width: auto;">
+            <span class="material-icons">save</span>
+            <span>Save Changes</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Preferences (Placeholder) -->
+    <div class="content-card">
+      <h2
+        style="font-size: var(--font-size-xl); font-weight: 700; color: var(--text-main); margin-bottom: var(--spacing-lg); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-md);">
+        Preferences
+      </h2>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: var(--spacing-md) 0;">
+        <div>
+          <div style="font-weight: 600; color: var(--text-main);">Email Notifications</div>
+          <div style="font-size: var(--font-size-sm); color: var(--text-muted);">Receive updates about your courses and
+            progress</div>
+        </div>
+        <label class="switch" style="position: relative; display: inline-block; width: 48px; height: 24px;">
+          <input type="checkbox" checked style="opacity: 0; width: 0; height: 0;">
+          <span
+            style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--primary); transition: .4s; border-radius: 24px;"></span>
+          <span
+            style="position: absolute; content: ''; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; transform: translateX(24px);"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

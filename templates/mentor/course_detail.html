@@ -33,6 +33,10 @@
         <span class="material-icons">edit</span>
         <span>Edit</span>
       </a>
+      <a href="{% url 'mentor_assessment_edit' course.id %}" class="btn-preview">
+        <span class="material-icons">quiz</span>
+        <span>Final Exam</span>
+      </a>
       <a href="{% url 'mentor_course_import_doc' course.id %}" class="btn-preview">
         <span class="material-icons">file_upload</span>
         <span>Import</span>

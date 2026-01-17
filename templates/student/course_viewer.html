@@ -39,9 +39,9 @@
       {% else %}
       <a href="?module_id={{ module.id }}{% if is_preview %}&preview=true&course_id={{ course.id }}{% endif %}"
         class="module-item {% if module.is_current %}active{% endif %}"
-        style="display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-md); text-decoration: none; border-radius: var(--radius-lg); transition: all var(--transition-fast); {% if module.is_current %}background: var(--primary-light); color: var(--primary);{% else %}color: var(--text-main);{% endif %}">
+        style="display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-md); text-decoration: none; border-radius: var(--radius-lg); transition: all var(--transition-fast); background: {% if module.is_current %}var(--primary-light){% else %}transparent{% endif %}; color: {% if module.is_current %}var(--primary){% else %}var(--text-main){% endif %};">
         <span class="material-icons {% if module.is_completed %}completed{% endif %}"
-          style="{% if module.is_completed %}color: var(--success);{% endif %}">
+          style="color: {% if module.is_completed %}var(--success){% else %}inherit{% endif %};">
           {% if module.is_completed %}check_circle
           {% elif module.content_type == 'assessment' %}assignment
           {% else %}article{% endif %}
@@ -58,7 +58,7 @@
     </div>
 
     <div class="sidebar-footer" style="padding: var(--spacing-lg); border-top: 1px solid var(--border-color);">
-      {% if not is_preview %}
+      {% if not is_preview and course.assessment %}
       <a href="{% url 'assessment_view' enrollment.id %}" class="btn-primary-premium"
         style="padding: var(--spacing-md); font-size: var(--font-size-sm);">
         <span class="material-icons">assignment</span>
@@ -122,6 +122,15 @@
       </div>
       {% endif %}
 
+
+
+      <!-- Module Mini Quiz -->
+      {% if current_module.quiz_data %}
+      <div id="module-quiz-root" style="margin-top: var(--spacing-2xl);"></div>
+      {{ current_module.quiz_data|json_script:"module-quiz-data" }}
+      {{ saved_quiz_data|json_script:"saved-quiz-data-script" }}
+      {% endif %}
+
       <div class="content-footer"
         style="margin-top: var(--spacing-4xl); padding-top: var(--spacing-2xl); border-top: 1px solid var(--border-color); display: flex; justify-content: center;">
         {% if current_module.id != modules.last.id %}
@@ -132,14 +141,14 @@
           <span class="material-icons">arrow_forward</span>
         </a>
         {% else %}
-        <button class="btn-primary-premium" onclick="markCompleteAndNext({{ current_module.id }})"
+        <button class="btn-primary-premium" onclick="markCompleteAndNext({{ current_module.id|default:0 }})"
           style="width: auto; padding: var(--spacing-md) var(--spacing-2xl);">
           <span>Next Lesson</span>
           <span class="material-icons">arrow_forward</span>
         </button>
         {% endif %}
         {% else %}
-        {% if not is_preview %}
+        {% if not is_preview and course.assessment %}
         <a href="{% url 'assessment_view' enrollment.id %}" class="btn-primary-premium"
           style="width: auto; padding: var(--spacing-md) var(--spacing-2xl);">
           <span>Take Final Assessment</span>
@@ -201,6 +210,22 @@
     const root = document.getElementById('module-quiz-root');
     let userAnswers = {};
     let submitted = false;
+
+    // Load saved data
+    let savedData = {};
+    const savedDataScript = document.getElementById('saved-quiz-data-script');
+    if (savedDataScript) {
+      try {
+        savedData = JSON.parse(savedDataScript.textContent);
+      } catch (e) {
+        console.error("Error parsing saved quiz data", e);
+      }
+    }
+
+    if (savedData && savedData.answers) {
+      userAnswers = savedData.answers;
+      submitted = true;
+    }
 
     function render() {
       root.innerHTML = quizData.map((q, i) => `
@@ -277,6 +302,32 @@
     window.submitQuiz = function () {
       submitted = true;
       render();
+
+      // Save progress
+      {% if not is_preview %}
+      const correctCount = quizData.filter((q, i) => {
+        const selectedOptIndex = userAnswers[i];
+        let correctIndex = q.correct_index;
+        if (correctIndex === undefined && q.correct_answer) {
+          correctIndex = q.options.indexOf(q.correct_answer);
+        }
+        return selectedOptIndex === correctIndex;
+      }).length;
+      const score = Math.round((correctCount / quizData.length) * 100);
+
+      const url = '{% url "save_module_quiz_progress" enrollment.id current_module.id|default:0 %}';
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken'),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          answers: userAnswers,
+          score: score
+        })
+      }).catch(err => console.error("Failed to save quiz progress", err));
+      {% endif %}
     };
 
     window.retryQuiz = function () {
@@ -290,6 +341,7 @@
 
   {% if not is_preview %}
   function markCompleteAndNext(moduleId) {
+    if (!moduleId) return;
     const url = '{% url "mark_module_complete" enrollment.id 0 %}'.replace('0', moduleId);
     fetch(url, {
       method: 'POST',

@@ -10,6 +10,7 @@ class User(AbstractUser):
     phone = models.CharField(max_length=20, blank=True)
     profile_completed = models.BooleanField(default=False)
     is_mentor = models.BooleanField(default=False)
+    bank_account_number = models.CharField(max_length=50, blank=True, help_text="For mentor payouts")
 
     class Meta:
         db_table = 'users'

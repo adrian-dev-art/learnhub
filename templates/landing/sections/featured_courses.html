@@ -84,6 +84,7 @@
     margin-bottom: 12px;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     min-height: 56px;
@@ -96,6 +97,7 @@
     margin-bottom: 20px;
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
     min-height: 72px;
@@ -160,7 +162,7 @@
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 32px;">
       {% for course in courses %}
       <div class="course-card-modern" data-course-id="{{ course.id }}"
-        onclick="location.href='{% url 'course_detail' course.id %}'">
+        data-course-url="{% url 'course_detail' course.id %}">
 
         <div class="course-thumbnail">
           {% if course.thumbnail %}
@@ -218,16 +220,39 @@
 </section>
 
 <!-- Module Data for Tooltip -->
+{% load static %}
+{{ courses|json_script:"courses-modules-data" }}
+
 <script>
-  window.courseModulesData = {
-  {% for course in courses %}
-  { { course.id } }: [
-    {% for module in course.module_list %}
-  "{{ module.title|escapejs }}"{% if not forloop.last %}, {% endif %}
-  {% endfor %}
-  ]{% if not forloop.last %}, {% endif %}
-  {% endfor %}
-};
+  // Parse course modules data from JSON
+  document.addEventListener('DOMContentLoaded', function () {
+    const dataEl = document.getElementById('courses-modules-data');
+    if (dataEl) {
+      try {
+        const coursesData = JSON.parse(dataEl.textContent);
+        window.courseModulesData = {};
+        coursesData.forEach(course => {
+          if (course.module_list) {
+            window.courseModulesData[course.id] = course.module_list.map(m => m.title);
+          }
+        });
+      } catch (e) {
+        console.error('Error parsing courses data:', e);
+        window.courseModulesData = {};
+      }
+    }
+
+    // Add click handlers to course cards
+    document.querySelectorAll('.course-card-modern').forEach(card => {
+      const url = card.dataset.courseUrl;
+      if (url) {
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', function () {
+          location.href = url;
+        });
+      }
+    });
+  });
 </script>
 
 <script src="{% static 'js/course-effects.js' %}"></script>

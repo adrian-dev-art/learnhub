@@ -4,6 +4,29 @@
 {% block title %}Mentor Dashboard - LearnHub{% endblock %}
 {% block page_title %}Mentor Dashboard{% endblock %}
 
+{% block extra_css %}
+<style>
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-muted);
+  }
+
+  .status-dot.active {
+    background: var(--success);
+  }
+
+  .status-text {
+    color: var(--text-muted);
+  }
+
+  .status-text.active {
+    color: var(--success);
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container">
   <!-- Welcome Header -->
@@ -53,15 +76,15 @@
       </div>
     </div>
 
-    <div class="stat-card">
+    <a href="{% url 'mentor_commission_detail' %}" class="stat-card" style="text-decoration: none; display: block;">
       <div class="stat-icon" style="background: #fff7ed; color: #f59e0b;">
         <span class="material-icons">payments</span>
       </div>
       <div class="stat-info">
-        <h3>Rp. 0</h3>
-        <p>Total Revenue</p>
+        <h3>Rp. {{ total_commission|floatformat:0 }}</h3>
+        <p>Total Commission</p>
       </div>
-    </div>
+    </a>
   </div>
 
   <!-- Courses Table -->
@@ -111,9 +134,8 @@
             <td style="font-weight: 600;">{{ course.enrollment_set.count }}</td>
             <td>
               <div style="display: flex; align-items: center; gap: 6px; font-size: var(--font-size-sm);">
-                <span
-                  style="width: 8px; height: 8px; border-radius: 50%; background: {% if course.is_active %}var(--success){% else %}var(--text-muted){% endif %};"></span>
-                <span style="color: {% if course.is_active %}var(--success){% else %}var(--text-muted){% endif %};">
+                <span class="status-dot {% if course.is_active %}active{% endif %}"></span>
+                <span class="status-text {% if course.is_active %}active{% endif %}">
                   {{ course.is_active|yesno:"Active,Inactive" }}
                 </span>
               </div>

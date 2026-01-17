@@ -1,0 +1,255 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block title %}Final Exam & Certificate - {{ course.title }}{% endblock %}
+{% block page_title %}Final Exam & Certificate{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="content-card" style="margin-bottom: var(--spacing-xl);">
+    <h2
+      style="font-size: var(--font-size-xl); font-weight: 700; color: var(--text-main); margin-bottom: var(--spacing-md);">
+      Configure Final Assessment
+    </h2>
+    <p style="color: var(--text-muted); margin-bottom: var(--spacing-lg);">
+      Create the final exam for <strong>{{ course.title }}</strong>. Students must pass this exam to receive their
+      certificate.
+    </p>
+
+    <form method="post" id="assessmentForm">
+      {% csrf_token %}
+
+      <!-- Basic Settings -->
+      <div class="grid grid-2" style="gap: var(--spacing-lg); margin-bottom: var(--spacing-xl);">
+        <div class="form-group">
+          <label class="form-label">Exam Title</label>
+          {{ form.title }}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Passing Score (%)</label>
+          {{ form.passing_score }}
+        </div>
+      </div>
+
+      <!-- Questions Builder -->
+      <h3
+        style="font-size: var(--font-size-lg); font-weight: 600; color: var(--text-main); margin-bottom: var(--spacing-md); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-sm);">
+        Questions
+      </h3>
+
+      <div id="questionsContainer">
+        <!-- Questions will be added here by JS -->
+      </div>
+
+      <div style="display: flex; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+        <button type="button" class="btn-secondary" id="addQuestionBtn">
+          <span class="material-icons">add_circle_outline</span>
+          <span>Add Question</span>
+        </button>
+        <a href="{% url 'download_assessment_template' %}" class="btn-secondary" target="_blank">
+          <span class="material-icons">download</span>
+          <span>Download Template</span>
+        </a>
+        <label class="btn-secondary" style="cursor: pointer;">
+          <span class="material-icons">upload_file</span>
+          <span>Import Excel</span>
+          <input type="file" id="importExcelInput" accept=".xlsx" style="display: none;">
+        </label>
+      </div>
+
+      <!-- Certificate Preview -->
+      <div
+        style="background: var(--gray-50); padding: var(--spacing-lg); border-radius: var(--radius-lg); margin-bottom: var(--spacing-xl); border: 1px dashed var(--border-color);">
+        <div style="display: flex; align-items: center; gap: var(--spacing-md);">
+          <div
+            style="width: 48px; height: 48px; background: #fef3c7; color: #f59e0b; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <span class="material-icons">workspace_premium</span>
+          </div>
+          <div>
+            <h4 style="font-weight: 600; color: var(--text-main); margin-bottom: 2px;">Certificate of Completion</h4>
+            <p style="font-size: var(--font-size-sm); color: var(--text-muted);">
+              Automatically generated for students who score {{ form.passing_score.value|default:"70" }}% or higher.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: var(--spacing-md);">
+        <a href="{% url 'mentor_course_detail' course.id %}" class="btn-secondary">Cancel</a>
+        <button type="submit" class="btn-primary-premium">
+          <span class="material-icons">save</span>
+          <span>Save Assessment</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const questionsContainer = document.getElementById('questionsContainer');
+  const addQuestionBtn = document.getElementById('addQuestionBtn');
+  let questionCount = 0;
+
+  // Existing questions data (if editing)
+  // Existing questions data (if editing)
+  const existingQuestions = {{ assessment.questions|default:"[]"|safe }};
+
+  function createQuestionElement(index, data = null) {
+    const qDiv = document.createElement('div');
+    qDiv.className = 'question-block';
+    qDiv.style.background = 'white';
+    qDiv.style.border = '1px solid var(--border-color)';
+    qDiv.style.borderRadius = 'var(--radius-md)';
+    qDiv.style.padding = 'var(--spacing-lg)';
+    qDiv.style.marginBottom = 'var(--spacing-lg)';
+    qDiv.innerHTML = `
+      <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-md);">
+        <h4 style="font-weight: 600;">Question ${index + 1}</h4>
+        <button type="button" class="btn-icon-danger remove-q-btn" style="color: var(--error);">
+          <span class="material-icons">delete</span>
+        </button>
+      </div>
+
+      <div class="form-group" style="margin-bottom: var(--spacing-md);">
+        <label class="form-label">Question Text</label>
+        <input type="text" name="question_text_${index}" class="form-input" required value="${data ? data.question : ''}" placeholder="Enter question here...">
+      </div>
+
+      <div class="options-container" id="options_container_${index}">
+        <label class="form-label" style="margin-bottom: 8px; display: block;">Options (Select correct answer)</label>
+        <!-- Options go here -->
+      </div>
+
+      <button type="button" class="btn-sm btn-secondary add-opt-btn" data-q-index="${index}">
+        + Add Option
+      </button>
+    `;
+
+    // Add initial options
+    const optionsContainer = qDiv.querySelector(`#options_container_${index}`);
+    const options = data ? data.options : ['', '']; // Default 2 empty options
+    const correctAns = data ? data.correct_answer : '';
+
+    options.forEach((optText, i) => {
+      addOptionInput(optionsContainer, index, i, optText, correctAns);
+    });
+
+    // Event listeners
+    qDiv.querySelector('.remove-q-btn').addEventListener('click', () => qDiv.remove());
+    qDiv.querySelector('.add-opt-btn').addEventListener('click', () => {
+      const currentOpts = optionsContainer.querySelectorAll('.option-row').length;
+      addOptionInput(optionsContainer, index, currentOpts, '', '');
+    });
+
+    return qDiv;
+  }
+
+  function addOptionInput(container, qIndex, oIndex, value, correctAns) {
+    const row = document.createElement('div');
+    row.className = 'option-row';
+    row.style.display = 'flex';
+    row.style.alignItems = 'center';
+    row.style.gap = 'var(--spacing-sm)';
+    row.style.marginBottom = 'var(--spacing-sm)';
+
+    const isChecked = value === correctAns ? 'checked' : '';
+    // If it's a new question, default first option as correct
+    const defaultCheck = (!correctAns && oIndex === 0) ? 'checked' : '';
+
+    row.innerHTML = `
+      <input type="radio" name="correct_index_${qIndex}" value="${oIndex}" ${isChecked} ${defaultCheck}>
+      <input type="text" name="option_${qIndex}_${oIndex}" class="form-input" value="${value}" placeholder="Option ${oIndex + 1}" required style="flex: 1;">
+      <button type="button" class="btn-icon-danger remove-opt-btn" tabindex="-1">
+        <span class="material-icons" style="font-size: 18px;">close</span>
+      </button>
+    `;
+
+    row.querySelector('.remove-opt-btn').addEventListener('click', () => {
+      if (container.querySelectorAll('.option-row').length > 2) {
+        row.remove();
+        // Re-index radio values? Ideally yes, but for simple MVP we rely on order.
+        // Actually, backend relies on index, so we should probably re-index or handle carefully.
+        // For simplicity, we just remove. Backend iterates until it finds gaps? No, backend iterates while exists.
+        // We should re-index the option names to ensure continuity for backend parsing loop.
+        reindexOptions(container, qIndex);
+      } else {
+        alert('Minimum 2 options required.');
+      }
+    });
+
+    container.appendChild(row);
+  }
+
+  function reindexOptions(container, qIndex) {
+    const rows = container.querySelectorAll('.option-row');
+    rows.forEach((row, idx) => {
+      const radio = row.querySelector('input[type="radio"]');
+      const text = row.querySelector('input[type="text"]');
+      radio.value = idx;
+      text.name = `option_${qIndex}_${idx}`;
+      text.placeholder = `Option ${idx + 1}`;
+    });
+  }
+
+  // Initialize
+  if (existingQuestions.length > 0) {
+    existingQuestions.forEach((q, i) => {
+      questionsContainer.appendChild(createQuestionElement(i, q));
+      questionCount = i + 1;
+    });
+  } else {
+    // Add one empty question to start
+    questionsContainer.appendChild(createQuestionElement(0));
+    questionCount = 1;
+  }
+
+  addQuestionBtn.addEventListener('click', () => {
+    questionsContainer.appendChild(createQuestionElement(questionCount));
+    questionCount++;
+  });
+
+  // Excel Import Logic
+  const importInput = document.getElementById('importExcelInput');
+  importInput.addEventListener('change', function() {
+    if (this.files.length === 0) return;
+
+    const formData = new FormData();
+    formData.append('file', this.files[0]);
+
+    // Show loading state
+    const originalText = this.parentElement.querySelector('span:nth-child(2)').textContent;
+    this.parentElement.querySelector('span:nth-child(2)').textContent = 'Importing...';
+
+    fetch('{% url "import_assessment_questions" %}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Add imported questions
+        data.questions.forEach(q => {
+          questionsContainer.appendChild(createQuestionElement(questionCount, q));
+          questionCount++;
+        });
+        alert(`Successfully imported ${data.questions.length} questions.`);
+      } else {
+        alert('Error importing file: ' + data.error);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('An error occurred during import.');
+    })
+    .finally(() => {
+      // Reset input and text
+      this.value = '';
+      this.parentElement.querySelector('span:nth-child(2)').textContent = originalText;
+    });
+  });
+
+</script>
+{% endblock %}

@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from .models import User, Course, Module
+from .models import User, Course, Module, Assessment
 
 
 class ModuleForm(forms.ModelForm):
@@ -48,12 +48,13 @@ class ProfileForm(forms.ModelForm):
     """User profile completion form"""
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'email', 'phone')
+        fields = ('first_name', 'last_name', 'email', 'phone', 'bank_account_number')
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-input', 'required': True}),
             'last_name': forms.TextInput(attrs={'class': 'form-input', 'required': True}),
             'email': forms.EmailInput(attrs={'class': 'form-input', 'required': True}),
             'phone': forms.TextInput(attrs={'class': 'form-input'}),
+            'bank_account_number': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Bank Name - Account Number'}),
         }
 
 
@@ -69,3 +70,14 @@ class AssessmentSubmissionForm(forms.Form):
                     choices=choices,
                     widget=forms.RadioSelect(attrs={'class': 'form-radio'})
                 )
+
+
+class AssessmentForm(forms.ModelForm):
+    """Form for creating and editing course assessments"""
+    class Meta:
+        model = Assessment
+        fields = ('title', 'passing_score')
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g., Final Course Exam'}),
+            'passing_score': forms.NumberInput(attrs={'class': 'form-input', 'min': 0, 'max': 100}),
+        }

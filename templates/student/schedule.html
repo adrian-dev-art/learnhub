@@ -1,0 +1,26 @@
+{% extends 'shared/base.html' %}
+
+{% block title %}Schedule - LearnHub{% endblock %}
+{% block page_title %}Schedule{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="content-card" style="text-align: center; padding: var(--spacing-4xl);">
+    <div
+      style="width: 80px; height: 80px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto var(--spacing-xl);">
+      <span class="material-icons" style="font-size: 40px;">event_note</span>
+    </div>
+    <h2
+      style="font-size: var(--font-size-2xl); font-weight: 700; color: var(--text-main); margin-bottom: var(--spacing-md);">
+      Your Schedule
+    </h2>
+    <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto var(--spacing-xl);">
+      Stay tuned! We are working on a new feature to help you manage your learning schedule and deadlines.
+    </p>
+    <a href="{% url 'student_dashboard' %}" class="btn-primary-premium" style="width: auto; display: inline-flex;">
+      <span class="material-icons">dashboard</span>
+      <span>Back to Dashboard</span>
+    </a>
+  </div>
+</div>
+{% endblock %}

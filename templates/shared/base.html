@@ -63,13 +63,15 @@
 
           {% if user.is_authenticated %}
           <li>
-            <a href="#" class="nav-link">
+            <a href="{% url 'schedule' %}"
+              class="nav-link {% if request.resolver_match.url_name == 'schedule' %}active{% endif %}">
               <span class="material-icons">event</span>
               <span>Schedule</span>
             </a>
           </li>
           <li>
-            <a href="#" class="nav-link">
+            <a href="{% url 'progress' %}"
+              class="nav-link {% if request.resolver_match.url_name == 'progress' %}active{% endif %}">
               <span class="material-icons">assessment</span>
               <span>Progress</span>
             </a>
@@ -85,7 +87,8 @@
           {% endif %}
 
           <li>
-            <a href="#" class="nav-link">
+            <a href="{% url 'settings' %}"
+              class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
               <span class="material-icons">settings</span>
               <span>Settings</span>
             </a>

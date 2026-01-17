@@ -1,0 +1,132 @@
+{% extends 'shared/base.html' %}
+{% load static %}
+
+{% block title %}My Progress - LearnHub{% endblock %}
+{% block page_title %}My Progress{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Stats Overview -->
+  <div class="grid grid-3" style="margin-bottom: var(--spacing-xl);">
+    <div class="stat-card">
+      <div class="stat-icon" style="background: var(--primary-light); color: var(--primary);">
+        <span class="material-icons">school</span>
+      </div>
+      <div class="stat-info">
+        <h3>{{ total_enrolled }}</h3>
+        <p>Total Enrolled</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #dcfce7; color: #10b981;">
+        <span class="material-icons">check_circle</span>
+      </div>
+      <div class="stat-info">
+        <h3>{{ completed_courses }}</h3>
+        <p>Courses Completed</p>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #fef3c7; color: #f59e0b;">
+        <span class="material-icons">emoji_events</span>
+      </div>
+      <div class="stat-info">
+        <h3>{{ certificates.count }}</h3>
+        <p>Certificates Earned</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Courses -->
+  <div class="content-card" style="margin-bottom: var(--spacing-xl);">
+    <h2
+      style="font-size: var(--font-size-xl); font-weight: 700; color: var(--text-main); margin-bottom: var(--spacing-lg); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-md);">
+      In Progress</h2>
+
+    {% if active_courses %}
+    <div style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
+      {% for enrollment in active_courses %}
+      <div
+        style="display: flex; gap: var(--spacing-md); padding-bottom: var(--spacing-lg); border-bottom: 1px solid var(--gray-100);">
+        <!-- Thumbnail -->
+        <div style="width: 120px; height: 80px; border-radius: var(--radius-md); overflow: hidden; flex-shrink: 0;">
+          {% if enrollment.course.thumbnail %}
+          <img src="{{ enrollment.course.thumbnail.url }}" alt="{{ enrollment.course.title }}"
+            style="width: 100%; height: 100%; object-fit: cover;">
+          {% else %}
+          <div
+            style="width: 100%; height: 100%; background: var(--primary-lighter); display: flex; align-items: center; justify-content: center;">
+            <span class="material-icons" style="color: var(--primary);">school</span>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Info -->
+        <div style="flex: 1;">
+          <h3 style="font-size: var(--font-size-lg); font-weight: 600; color: var(--text-main); margin-bottom: 4px;">{{ enrollment.course.title }}</h3>
+          <div style="font-size: var(--font-size-sm); color: var(--text-muted); margin-bottom: var(--spacing-sm);">
+            Started on {{ enrollment.enrolled_at|date:"M d, Y" }}
+          </div>
+
+          <!-- Progress Bar -->
+          <div style="display: flex; align-items: center; gap: var(--spacing-md);">
+            <div style="flex: 1; height: 8px; background: var(--gray-200); border-radius: 4px; overflow: hidden;">
+              <div
+                style="width: {{ enrollment.progress_percentage }}%; height: 100%; background: var(--primary); border-radius: 4px;">
+              </div>
+            </div>
+            <span style="font-weight: 600; font-size: var(--font-size-sm); color: var(--text-main);">{{ enrollment.progress_percentage }}%</span>
+          </div>
+        </div>
+
+        <!-- Action -->
+        <div style="align-self: center;">
+          <a href="{% url 'course_viewer' enrollment.id %}" class="btn-primary-premium"
+            style="padding: 8px 16px; font-size: var(--font-size-sm);">
+            Resume
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: var(--spacing-xl);">
+      <p style="color: var(--text-muted);">No active courses. <a href="{% url 'catalog' %}"
+          style="color: var(--primary);">Browse catalog</a> to start learning.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Completed Courses / Certificates -->
+  <div class="content-card">
+    <h2
+      style="font-size: var(--font-size-xl); font-weight: 700; color: var(--text-main); margin-bottom: var(--spacing-lg); border-bottom: 1px solid var(--border-color); padding-bottom: var(--spacing-md);">
+      Completed Courses & Certificates</h2>
+
+    {% if certificates %}
+    <div class="grid grid-2" style="gap: var(--spacing-lg);">
+      {% for cert in certificates %}
+      <div
+        style="border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: var(--spacing-lg); display: flex; gap: var(--spacing-md); align-items: center;">
+        <div
+          style="width: 48px; height: 48px; background: #fef3c7; color: #f59e0b; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <span class="material-icons">emoji_events</span>
+        </div>
+        <div style="flex: 1;">
+          <h4 style="font-weight: 600; color: var(--text-main); margin-bottom: 2px;">{{ cert.course.title }}</h4>
+          <div style="font-size: var(--font-size-xs); color: var(--text-muted);">Issued: {{ cert.issued_at|date:"M d, Y" }}</div>
+        </div>
+        <a href="{% url 'download_certificate' cert.id %}" title="Download PDF" style="color: var(--primary);">
+          <span class="material-icons">download</span>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: var(--spacing-xl);">
+      <p style="color: var(--text-muted);">You haven't completed any courses yet. Keep going!</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

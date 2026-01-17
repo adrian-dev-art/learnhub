@@ -156,92 +156,153 @@ def execute_python_code(code, inputs="", timeout=5):
 
 
 def generate_certificate_pdf(certificate):
-    """Generate PDF certificate"""
+    """Generate PDF certificate with custom design"""
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.lib import colors
+    from reportlab.lib.utils import ImageReader
+    import qrcode
+
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4)
-    elements = []
+    # Create canvas in landscape mode
+    c = canvas.Canvas(buffer, pagesize=landscape(A4))
+    width, height = landscape(A4)
 
-    # Styles
-    styles = getSampleStyleSheet()
-    title_style = ParagraphStyle(
-        'CustomTitle',
-        parent=styles['Heading1'],
-        fontSize=32,
-        textColor=colors.HexColor('#1a73e8'),
-        spaceAfter=30,
-        alignment=TA_CENTER,
-        fontName='Helvetica-Bold'
+    # Colors
+    dark_blue = colors.HexColor('#0f172a')
+    gold_color = colors.HexColor('#d97706')
+    text_black = colors.HexColor('#1f2937')
+    text_gray = colors.HexColor('#4b5563')
+
+    # --- Background Design ---
+    # Draw the dark sidebar on the right
+    # Polygon points: Top-Right, Bottom-Right, Bottom-Mid, Top-Mid
+    # The diagonal cut goes from top (approx 65% width) to bottom (approx 55% width)
+
+    path = c.beginPath()
+    path.moveTo(width * 0.6, height) # Top-Mid start
+    path.lineTo(width, height)       # Top-Right
+    path.lineTo(width, 0)            # Bottom-Right
+    path.lineTo(width * 0.5, 0)      # Bottom-Mid end
+    path.close()
+
+    c.setFillColor(dark_blue)
+    c.drawPath(path, fill=1, stroke=0)
+
+    # --- Left Section (White) ---
+
+    # "CERTIFICATE"
+    c.setFillColor(text_black)
+    c.setFont("Times-Bold", 42)
+    c.drawString(50, height - 100, "CERTIFICATE")
+
+    # "OF APPRECIATION"
+    c.setFont("Helvetica-Bold", 14)
+    c.drawString(50, height - 125, "OF APPRECIATION")
+
+    # Line under title
+    c.setLineWidth(2)
+    c.setStrokeColor(text_black)
+    c.line(50, height - 135, 250, height - 135)
+
+    # "PROUDLY PRESENTED TO"
+    c.setFont("Helvetica", 10)
+    c.setFillColor(text_gray)
+    c.drawString(50, height - 180, "PROUDLY PRESENTED TO")
+
+    # Student Name
+    student_name = certificate.user.get_full_name() or certificate.user.username
+    c.setFont("Times-Italic", 36) # Using Italic to mimic script
+    c.setFillColor(colors.black)
+    c.drawString(50, height - 230, student_name)
+
+    # "FOR AN EXCELLENT PERFORMANCE..."
+    c.setFont("Helvetica-Bold", 9)
+    c.setFillColor(text_black)
+    c.drawString(50, height - 280, "FOR AN EXCELLENT PERFORMANCE AS A PARTICIPANT")
+
+    # Course Details
+    c.setFont("Helvetica", 10)
+    c.setFillColor(text_black)
+    # Wrap text if too long
+    course_text = f"Workshop: {certificate.course.title}"
+    c.drawString(50, height - 310, course_text)
+
+    # Date Range (Mocked based on issue date)
+    c.setFont("Helvetica", 9)
+    c.setFillColor(text_gray)
+    date_str = certificate.issued_at.strftime('%d %B %Y')
+    c.drawString(50, height - 330, f"Completed on {date_str}")
+
+    # Bottom Left Date
+    c.setFont("Helvetica-Bold", 10)
+    c.setFillColor(text_black)
+    c.drawString(50, 50, date_str)
+
+    # CDIA Logo Placeholder (Bottom Center-Left)
+    c.setFont("Helvetica-Bold", 16)
+    c.setFillColor(colors.black)
+    c.drawString(200, 50, "CDIA")
+    c.setFont("Helvetica", 8)
+    c.drawString(200, 35, "CAKRA DIGITAL ANDALAN")
+
+    # --- Right Section (Dark) ---
+
+    # Company Name
+    c.setFont("Helvetica-Bold", 12)
+    c.setFillColor(gold_color)
+    c.drawRightString(width - 30, height - 50, "PT. CAKRA DIGITAL ANDALAN (CDIA)")
+
+    c.setFont("Helvetica", 8)
+    c.setFillColor(colors.white)
+    c.drawRightString(width - 30, height - 65, "NOMOR AHU-0031310.AH.01.01.TAHUN 2022")
+
+    # Laurel Wreath / Badge (Mocked with text/circle)
+    c.saveState()
+    c.translate(width - 100, height / 2 - 20)
+    c.setStrokeColor(gold_color)
+    c.setLineWidth(3)
+    c.circle(0, 0, 50, stroke=1, fill=0)
+
+    c.setFont("Times-Bold", 14)
+    c.setFillColor(gold_color)
+    c.drawCentredString(0, 10, "Private")
+    c.drawCentredString(0, -5, "Lesson")
+    c.setFont("Helvetica-Bold", 12)
+    c.drawCentredString(0, -25, "2025")
+    c.restoreState()
+
+    c.setFont("Helvetica-Bold", 16)
+    c.setFillColor(colors.HexColor('#332e20')) # Dark goldish
+    c.drawCentredString(width - 100, height / 2 - 90, "Batch 2")
+
+    # QR Code
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=1,
     )
+    # QR Data: Verification URL
+    verify_url = f"https://learnhub.com/verify/{certificate.certificate_id}"
+    qr.add_data(verify_url)
+    qr.make(fit=True)
 
-    subtitle_style = ParagraphStyle(
-        'Subtitle',
-        parent=styles['Normal'],
-        fontSize=18,
-        spaceAfter=12,
-        alignment=TA_CENTER,
-        fontName='Helvetica'
-    )
+    qr_img = qr.make_image(fill_color="black", back_color="white")
 
-    content_style = ParagraphStyle(
-        'Content',
-        parent=styles['Normal'],
-        fontSize=14,
-        spaceAfter=20,
-        alignment=TA_CENTER,
-        fontName='Helvetica'
-    )
+    # Convert PIL image to ReportLab Image
+    qr_buffer = BytesIO()
+    qr_img.save(qr_buffer, format="PNG")
+    qr_buffer.seek(0)
 
-    # Add spacing
-    elements.append(Spacer(1, 1*inch))
+    c.drawImage(ImageReader(qr_buffer), width - 230, 80, width=80, height=80)
 
-    # Certificate title
-    title = Paragraph("CERTIFICATE OF COMPLETION", title_style)
-    elements.append(title)
-    elements.append(Spacer(1, 0.5*inch))
+    # Signature Name
+    c.setFont("Helvetica-Bold", 10)
+    c.setFillColor(colors.white)
+    c.drawCentredString(width - 190, 60, "Deni Suprihadi, S.T, M.KOM")
 
-    # Award text
-    award_text = Paragraph("This is to certify that", content_style)
-    elements.append(award_text)
-    elements.append(Spacer(1, 0.2*inch))
-
-    # User name
-    user_name = Paragraph(
-        f"<b>{certificate.user.get_full_name() or certificate.user.username}</b>",
-        subtitle_style
-    )
-    elements.append(user_name)
-    elements.append(Spacer(1, 0.2*inch))
-
-    # Completion text
-    completion = Paragraph(
-        f"has successfully completed the course",
-        content_style
-    )
-    elements.append(completion)
-    elements.append(Spacer(1, 0.2*inch))
-
-    # Course name
-    course_name = Paragraph(
-        f"<b>{certificate.course.title}</b>",
-        subtitle_style
-    )
-    elements.append(course_name)
-    elements.append(Spacer(1, 0.5*inch))
-
-    # Date and certificate ID
-    date_text = Paragraph(
-        f"Issued on {certificate.issued_at.strftime('%B %d, %Y')}",
-        content_style
-    )
-    elements.append(date_text)
-
-    cert_id = Paragraph(
-        f"Certificate ID: {certificate.certificate_id}",
-        content_style
-    )
-    elements.append(cert_id)
-
-    # Build PDF
-    doc.build(elements)
+    c.showPage()
+    c.save()
     buffer.seek(0)
     return buffer

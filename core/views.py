@@ -6,7 +6,7 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from .models import Course, Module, Enrollment, Assessment, AssessmentResult, Certificate, User
-from .forms import CustomUserCreationForm, ProfileForm, AssessmentSubmissionForm, CourseForm, ModuleForm
+from .forms import CustomUserCreationForm, ProfileForm, AssessmentSubmissionForm, CourseForm, ModuleForm, AssessmentForm
 from .utils import send_access_key_email, execute_python_code, generate_certificate_pdf, parse_docx_to_modules
 import tempfile
 import os
@@ -14,6 +14,7 @@ from django.core.exceptions import PermissionDenied
 from functools import wraps
 import json
 import markdown
+from decimal import Decimal
 
 
 def mentor_required(view_func):
@@ -65,7 +66,7 @@ def student_dashboard(request):
 
         # Dummy data for "Best Seller" and "Related" for now
         best_sellers = all_courses.order_by('-created_at')[:3]
-        related_courses = all_courses.order_by('?')[:3]
+        related_courses = all_courses.order_by('-created_at')[3:6]  # Different set of courses
 
         context = {
             'enrollments': enrollments,
@@ -299,7 +300,8 @@ def course_viewer(request, enrollment_id):
         'current_module': current_module,
         'completed_modules': completed,
         'first_incomplete': first_incomplete,
-        'is_preview': is_preview
+        'is_preview': is_preview,
+        'saved_quiz_data': enrollment.progress.get('quiz_data', {}).get(str(current_module.id), {}) if enrollment and current_module else {}
     }
     return render(request, 'student/course_viewer.html', context)
 
@@ -321,6 +323,37 @@ def mark_module_complete(request, enrollment_id, module_id):
         enrollment.save()
 
     return JsonResponse({'success': True, 'completed': completed})
+
+
+@login_required
+@require_POST
+def save_module_quiz_progress(request, enrollment_id, module_id):
+    """Save user's progress on a module quiz"""
+    enrollment = get_object_or_404(Enrollment, id=enrollment_id, user_id=request.user.id)
+
+    try:
+        data = json.loads(request.body)
+        answers = data.get('answers')
+        score = data.get('score')
+
+        if not enrollment.progress:
+            enrollment.progress = {'completed_modules': []}
+
+        # Initialize quiz_data if not exists
+        if 'quiz_data' not in enrollment.progress:
+            enrollment.progress['quiz_data'] = {}
+
+        # Save quiz result for this module
+        enrollment.progress['quiz_data'][str(module_id)] = {
+            'answers': answers,
+            'score': score,
+            'completed_at': str(datetime.now())
+        }
+
+        enrollment.save()
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
 
 
 @csrf_exempt
@@ -516,22 +549,145 @@ def mentor_dashboard(request):
     completed_enrollments = 0
 
     # Manual counting to avoid complex JOINs or IN queries that fail in Djongo
+    total_revenue = Decimal('0')
     if mentor_courses:
         course_ids = [c.id for c in mentor_courses]
+
+        # Create a map of prices, ensuring they are Decimal
+        course_prices = {}
+        for c in mentor_courses:
+            price = c.price
+            # Handle potential Decimal128 from MongoDB/Djongo
+            if hasattr(price, 'to_decimal'):
+                price = price.to_decimal()
+            elif not isinstance(price, Decimal):
+                price = Decimal(str(price))
+            course_prices[c.id] = price
+
         all_enrollments = Enrollment.objects.all()
         for en in all_enrollments:
             if en.course_id in course_ids:
                 total_enrollments += 1
                 if en.completed:
                     completed_enrollments += 1
+                if en.payment_status == 'completed':
+                    total_revenue += course_prices.get(en.course_id, Decimal('0'))
+
+    total_commission = int(total_revenue * Decimal('0.20'))
 
     context = {
         'courses': mentor_courses,
         'total_courses': total_courses,
         'total_enrollments': total_enrollments,
         'completed_enrollments': completed_enrollments,
+        'total_commission': total_commission,
     }
     return render(request, 'mentor/dashboard.html', context)
+
+
+@login_required
+@mentor_required
+def mentor_commission_detail(request):
+    """Detailed view of commission earnings"""
+    all_courses = Course.objects.all()
+    mentor_courses = [c for c in all_courses if c.mentor_id == request.user.id]
+
+    commission_details = []
+    total_commission = Decimal('0')
+
+    if mentor_courses:
+        course_map = {c.id: c for c in mentor_courses}
+        course_ids = list(course_map.keys())
+
+        # Create a map of prices, ensuring they are Decimal
+        course_prices = {}
+        for c in mentor_courses:
+            price = c.price
+            if hasattr(price, 'to_decimal'):
+                price = price.to_decimal()
+            elif not isinstance(price, Decimal):
+                price = Decimal(str(price))
+            course_prices[c.id] = price
+
+        all_enrollments = Enrollment.objects.select_related('user').all()
+        for en in all_enrollments:
+            if en.course_id in course_ids and en.payment_status == 'completed':
+                price = course_prices.get(en.course_id, Decimal('0'))
+                commission = price * Decimal('0.20')
+                total_commission += commission
+
+                commission_details.append({
+                    'course_title': course_map[en.course_id].title,
+                    'student_name': en.user.get_full_name() or en.user.username,
+                    'date': en.enrolled_at,
+                    'price': price,
+                    'commission': commission
+                })
+
+    # Sort by date descending
+    commission_details.sort(key=lambda x: x['date'], reverse=True)
+
+    context = {
+        'commission_details': commission_details,
+        'total_commission': total_commission
+    }
+    return render(request, 'mentor/commission_detail.html', context)
+
+
+
+@login_required
+def schedule(request):
+    """Schedule view - Placeholder"""
+    return render(request, 'student/schedule.html')
+
+
+@login_required
+def settings_view(request):
+    """User settings and profile update"""
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Profile updated successfully.')
+            return redirect('settings')
+    else:
+        form = ProfileForm(instance=request.user)
+
+    return render(request, 'student/settings.html', {'form': form})
+
+
+@login_required
+def progress_view(request):
+    """Detailed progress and achievements view"""
+    enrollments = Enrollment.objects.filter(
+        user=request.user,
+        payment_status='completed'
+    ).select_related('course')
+
+    # Calculate stats
+    total_enrolled = enrollments.count()
+    completed_courses = 0
+    certificates = Certificate.objects.filter(user=request.user).select_related('course')
+
+    active_courses = []
+    completed_list = []
+
+    for en in enrollments:
+        if en.completed:
+            completed_courses += 1
+            completed_list.append(en)
+        else:
+            active_courses.append(en)
+
+    context = {
+        'enrollments': enrollments,
+        'total_enrolled': total_enrolled,
+        'completed_courses': completed_courses,
+        'active_courses': active_courses,
+        'completed_list': completed_list,
+        'certificates': certificates
+    }
+    return render(request, 'student/progress.html', context)
 
 
 
@@ -708,3 +864,153 @@ def mentor_module_edit(request, module_id):
         form = ModuleForm(instance=module)
 
     return render(request, 'mentor/module_form.html', {'form': form, 'module': module, 'course': course, 'action': 'Edit'})
+
+
+@login_required
+@mentor_required
+def mentor_assessment_edit(request, course_id):
+    """Create or edit course assessment"""
+    course = get_object_or_404(Course, id=course_id, mentor=request.user)
+
+    try:
+        assessment = course.assessment
+    except Assessment.DoesNotExist:
+        assessment = None
+
+    if request.method == 'POST':
+        form = AssessmentForm(request.POST, instance=assessment)
+        if form.is_valid():
+            assessment = form.save(commit=False)
+            assessment.course = course
+
+            # Handle questions from POST data
+            questions = []
+            q_idx = 0
+            # Simple parsing of dynamic form data
+            while f'question_text_{q_idx}' in request.POST:
+                q_text = request.POST.get(f'question_text_{q_idx}')
+
+                # Get options
+                options = []
+                o_idx = 0
+                while f'option_{q_idx}_{o_idx}' in request.POST:
+                    opt_val = request.POST.get(f'option_{q_idx}_{o_idx}')
+                    if opt_val: # Only add non-empty options
+                        options.append(opt_val)
+                    o_idx += 1
+
+                # Get correct answer index
+                correct_idx_str = request.POST.get(f'correct_index_{q_idx}')
+                if correct_idx_str and options:
+                    try:
+                        correct_idx = int(correct_idx_str)
+                        if 0 <= correct_idx < len(options):
+                            correct_answer = options[correct_idx]
+                        else:
+                            correct_answer = options[0]
+                    except ValueError:
+                        correct_answer = options[0]
+                elif options:
+                    correct_answer = options[0]
+                else:
+                    correct_answer = ""
+
+                if q_text and options:
+                    questions.append({
+                        'question': q_text,
+                        'options': options,
+                        'correct_answer': correct_answer
+                    })
+                q_idx += 1
+
+            assessment.questions = questions
+            assessment.save()
+            messages.success(request, 'Assessment saved successfully.')
+            return redirect('mentor_course_detail', course_id=course.id)
+    else:
+        form = AssessmentForm(instance=assessment)
+    return render(request, 'mentor/assessment_form.html', {
+        'form': form,
+        'course': course,
+        'assessment': assessment
+    })
+
+
+@login_required
+@mentor_required
+def download_assessment_template(request):
+    """Download Excel template for assessment questions"""
+    import openpyxl
+    from django.http import HttpResponse
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Assessment Questions"
+
+    # Headers
+    headers = ['Question', 'Option 1', 'Option 2', 'Option 3', 'Option 4', 'Correct Option (1-4)']
+    ws.append(headers)
+
+    # Example row
+    example = ['What is the capital of France?', 'London', 'Berlin', 'Paris', 'Madrid', '3']
+    ws.append(example)
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename=assessment_template.xlsx'
+    wb.save(response)
+    return response
+
+
+@login_required
+@mentor_required
+@require_POST
+def import_assessment_questions(request):
+    """Import assessment questions from Excel"""
+    import openpyxl
+
+    if 'file' not in request.FILES:
+        return JsonResponse({'success': False, 'error': 'No file uploaded'})
+
+    file = request.FILES['file']
+
+    try:
+        wb = openpyxl.load_workbook(file)
+        ws = wb.active
+
+        questions = []
+
+        # Skip header row
+        for row in ws.iter_rows(min_row=2, values_only=True):
+            if not row[0]: # Skip empty rows
+                continue
+
+            question_text = str(row[0]).strip()
+            options = []
+
+            # Get options (columns 1-4)
+            for i in range(1, 5):
+                if i < len(row) and row[i]:
+                    options.append(str(row[i]).strip())
+
+            # Get correct answer index (column 5) - 1-based index in Excel to 0-based
+            correct_idx = 0
+            if len(row) > 5 and row[5]:
+                try:
+                    val = int(row[5])
+                    if 1 <= val <= len(options):
+                        correct_idx = val - 1
+                except ValueError:
+                    pass
+
+            if question_text and len(options) >= 2:
+                questions.append({
+                    'question': question_text,
+                    'options': options,
+                    'correct_answer': options[correct_idx] if options else '',
+                    'correct_index': correct_idx # Helper for frontend
+                })
+
+        return JsonResponse({'success': True, 'questions': questions})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
