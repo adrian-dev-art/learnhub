@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}LearnHub - Modern Learning Platform{% endblock %}</title>
+  <title>{% block title %}GampangBelajar - Modern Learning Platform{% endblock %}</title>
 
   <!-- Google Material Icons -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -31,7 +31,7 @@
           <div class="brand-icon">
             <span class="material-icons">school</span>
           </div>
-          <span class="brand-text">LearnHub</span>
+          <span class="brand-text">GampangBelajar</span>
         </a>
 
         <!-- Search Box -->
@@ -138,11 +138,6 @@
         <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
 
         <div class="top-bar-actions">
-          <!-- Theme Switcher -->
-          <button id="theme-toggle" class="notification-btn" title="Toggle Dark Mode">
-            <span class="material-icons" id="theme-icon"
-              style="transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);">dark_mode</span>
-          </button>
 
           {% if user.is_authenticated %}
           <button class="notification-btn">
@@ -154,26 +149,6 @@
       </div>
 
       <script>
-        // Theme Toggle Logic
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = document.getElementById('theme-icon');
-        const body = document.body;
-
-        // Check for saved theme
-        const currentTheme = localStorage.getItem('theme');
-        if (currentTheme === 'dark') {
-          body.classList.add('dark-mode');
-          themeIcon.textContent = 'light_mode';
-          themeIcon.style.transform = 'rotate(180deg)';
-        }
-
-        themeToggle.addEventListener('click', () => {
-          body.classList.toggle('dark-mode');
-          const isDark = body.classList.contains('dark-mode');
-          themeIcon.textContent = isDark ? 'light_mode' : 'dark_mode';
-          themeIcon.style.transform = isDark ? 'rotate(180deg)' : 'rotate(0deg)';
-          localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        });
 
         // Sidebar Toggle Logic
         const sidebar = document.getElementById('sidebar');
@@ -216,7 +191,7 @@
       <!-- Footer -->
       <footer class="footer">
         <div class="container">
-          <p>&copy; 2026 LearnHub. Modern Interactive Learning Platform.</p>
+          <p>&copy; 2026 GampangBelajar. Modern Interactive Learning Platform.</p>
         </div>
       </footer>
     </div>

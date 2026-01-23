@@ -5,6 +5,7 @@ Django settings for config project.
 from pathlib import Path
 from decouple import config
 # Trigger server reload for static files
+# Reload triggered
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,6 +20,7 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(','
 
 # Application definition
 INSTALLED_APPS = [
+    'unfold',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -54,22 +56,20 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'libraries': {
+                'admin_dashboard_tags': 'core.templatetags.admin_dashboard_tags',
+            },
         },
     },
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Database - MongoDB via djongo
+# Database - SQLite (Switched from MongoDB for stability)
 DATABASES = {
     'default': {
-        'ENGINE': 'djongo',
-        'NAME': 'courseplatform',
-        'ENFORCE_SCHEMA': False,
-        'CLIENT': {
-            'host': 'localhost',
-            'port': 27017,
-        }
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -120,3 +120,26 @@ AUTH_USER_MODEL = 'core.User'
 
 # Payment Mode
 PAYMENT_MODE = config('PAYMENT_MODE', default='demo')
+
+# Unfold Admin Configuration
+UNFOLD = {
+    "SITE_TITLE": "Learning App Admin",
+    "SITE_HEADER": "Learning App Administration",
+    "SITE_URL": "/",
+    "COLORS": {
+        "primary": {
+            "50": "239 246 255",
+            "100": "219 234 254",
+            "200": "191 219 254",
+            "300": "147 197 253",
+            "400": "96 165 250",
+            "500": "59 130 246",
+            "600": "37 99 235",
+            "700": "29 78 216",
+            "800": "30 64 175",
+            "900": "30 58 138",
+        },
+    },
+}
+
+

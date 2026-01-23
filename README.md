@@ -1,4 +1,4 @@
-# LearnHub Course Platform
+# GampangBelajar Course Platform
 
 A modern, lightweight Django-based interactive course platform with MongoDB integration.
 

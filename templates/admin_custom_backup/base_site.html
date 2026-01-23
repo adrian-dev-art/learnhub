@@ -1,0 +1,64 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}</a></h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block extrastyle %}
+<style>
+  :root {
+    --primary-color: #4f46e5;
+    --secondary-color: #818cf8;
+    --header-bg: #1e1b4b;
+    --header-color: #ffffff;
+    --link-color: #4f46e5;
+  }
+
+  #header {
+    background: var(--header-bg);
+    color: var(--header-color);
+  }
+
+  #branding h1 {
+    color: var(--header-color);
+  }
+
+  div.breadcrumbs {
+    background: var(--secondary-color);
+    color: white;
+  }
+
+  div.breadcrumbs a {
+    color: white;
+  }
+
+  .module h2,
+  .module caption,
+  .inline-group h2 {
+    background: var(--primary-color);
+  }
+
+  a:link,
+  a:visited {
+    color: var(--link-color);
+  }
+
+  .button,
+  input[type=submit],
+  input[type=button],
+  .submit-row input,
+  a.button {
+    background: var(--primary-color);
+  }
+
+  .button.default,
+  input[type=submit].default,
+  .submit-row input.default {
+    background: var(--primary-color);
+  }
+</style>
+{% endblock %}

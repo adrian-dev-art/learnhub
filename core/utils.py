@@ -170,7 +170,7 @@ def generate_certificate_pdf(certificate):
 
     # Colors
     dark_blue = colors.HexColor('#0f172a')
-    gold_color = colors.HexColor('#d97706')
+    gold_color = colors.HexColor('#D4AF37')
     text_black = colors.HexColor('#1f2937')
     text_gray = colors.HexColor('#4b5563')
 
@@ -284,7 +284,7 @@ def generate_certificate_pdf(certificate):
         border=1,
     )
     # QR Data: Verification URL
-    verify_url = f"https://learnhub.com/verify/{certificate.certificate_id}"
+    verify_url = f"https://gampangbelajar.com/verify/{certificate.certificate_id}"
     qr.add_data(verify_url)
     qr.make(fit=True)
 

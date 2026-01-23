@@ -1,7 +1,7 @@
 {% extends 'shared/base.html' %}
 {% load static %}
 
-{% block title %}{{ action }} Course - LearnHub Mentor{% endblock %}
+{% block title %}{{ action }} Course - GampangBelajar Mentor{% endblock %}
 
 {% block content %}
 <div class="mentor-container">
@@ -156,9 +156,9 @@
   select:focus,
   textarea:focus {
     outline: none;
-    border-color: #6366f1;
+    border-color: var(--primary);
     background: white;
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 0 4px var(--primary-light);
   }
 
   .checkbox-wrapper {

@@ -1,5 +1,5 @@
 """
-Comprehensive data seeder for LearnHub Course Platform
+Comprehensive data seeder for GampangBelajar Course Platform
 Creates users, courses, modules, and assessments
 Usage: python manage.py seed_all_data
 """
@@ -26,9 +26,11 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS('\n✅ Database seeded successfully!'))
         self.stdout.write(self.style.SUCCESS('\nTest Accounts Created:'))
-        self.stdout.write('  - Username: admin, Password: admin123')
-        self.stdout.write('  - Username: student1, Password: student123')
-        self.stdout.write('  - Username: student2, Password: student123')
+        self.stdout.write('  - Username: admin, Password: admin123 (Admin)')
+        self.stdout.write('  - Username: owner, Password: owner123 (Owner)')
+        self.stdout.write('  - Username: mentor, Password: mentor123 (Mentor/Penulis)')
+        self.stdout.write('  - Username: student1, Password: student123 (Student/Pembaca)')
+        self.stdout.write('  - Username: student2, Password: student123 (Student/Pembaca)')
 
     def create_users(self):
         """Create sample users"""
@@ -38,15 +40,43 @@ class Command(BaseCommand):
         if not User.objects.filter(username='admin').exists():
             User.objects.create(
                 username='admin',
-                email='admin@learnhub.com',
+                email='admin@gampangbelajar.com',
                 password=make_password('admin123'),
                 first_name='Admin',
                 last_name='User',
+                role='admin',
                 is_staff=True,
                 is_superuser=True,
                 profile_completed=True
             )
             self.stdout.write('  ✓ Created admin user')
+
+        # Owner user
+        if not User.objects.filter(username='owner').exists():
+            User.objects.create(
+                username='owner',
+                email='owner@gampangbelajar.com',
+                password=make_password('owner123'),
+                first_name='Owner',
+                last_name='User',
+                role='owner',
+                profile_completed=True
+            )
+            self.stdout.write('  ✓ Created owner user')
+
+        # Mentor user
+        if not User.objects.filter(username='mentor').exists():
+            User.objects.create(
+                username='mentor',
+                email='mentor@gampangbelajar.com',
+                password=make_password('mentor123'),
+                first_name='Mentor',
+                last_name='User',
+                role='penulis',
+                is_mentor=True,
+                profile_completed=True
+            )
+            self.stdout.write('  ✓ Created mentor user')
 
         # Student users
         for i in range(1, 3):
@@ -57,6 +87,7 @@ class Command(BaseCommand):
                     password=make_password('student123'),
                     first_name=f'Student',
                     last_name=f'{i}',
+                    role='pembaca',
                     profile_completed=True
                 )
                 self.stdout.write(f'  ✓ Created student{i}')

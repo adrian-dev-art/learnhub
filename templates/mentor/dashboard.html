@@ -1,7 +1,7 @@
 {% extends 'shared/base.html' %}
 {% load static %}
 
-{% block title %}Mentor Dashboard - LearnHub{% endblock %}
+{% block title %}Mentor Dashboard - GampangBelajar{% endblock %}
 {% block page_title %}Mentor Dashboard{% endblock %}
 
 {% block extra_css %}
@@ -30,7 +30,8 @@
 {% block content %}
 <div class="container">
   <!-- Welcome Header -->
-  <div class="content-card" style="background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%); border: none;">
+  <div class="content-card"
+    style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border: none;">
     <h2 style="font-size: var(--font-size-3xl); font-weight: 800; color: white; margin-bottom: var(--spacing-sm);">
       Welcome back, {{ request.user.first_name }}!
     </h2>

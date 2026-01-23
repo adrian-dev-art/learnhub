@@ -2,10 +2,10 @@
 
 /* --- Variables & Base --- */
 :root {
-  --landing-bg: #000000;
+  --landing-bg: #0f172a;
   --landing-text: #ffffff;
-  --landing-accent: #6366f1;
-  --landing-accent-glow: rgba(99, 102, 241, 0.5);
+  --landing-accent: #D4AF37;
+  --landing-accent-glow: rgba(212, 175, 55, 0.5);
   --glass-bg: rgba(255, 255, 255, 0.05);
   --glass-border: rgba(255, 255, 255, 0.1);
   --glass-blur: blur(10px);
@@ -177,7 +177,7 @@ body {
 }
 
 .hero-title .highlight {
-  background: linear-gradient(135deg, #6366f1 0%, #a78bfa 100%);
+  background: linear-gradient(135deg, #D4AF37, #F9E076);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -204,7 +204,7 @@ body {
 
 .hero-cta-primary {
   padding: 16px 40px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #D4AF37, #F9E076);
   color: white;
   border-radius: 12px;
   font-size: 16px;
@@ -266,7 +266,7 @@ body {
 .floating-element .icon {
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #D4AF37, #F9E076);
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -436,7 +436,7 @@ body {
   height: 100%;
   background: #1a1a2e;
   border: none;
-  color: #a78bfa;
+  color: var(--landing-accent);
   font-family: 'Fira Code', monospace;
   font-size: 14px;
   line-height: 1.6;
@@ -537,7 +537,7 @@ body {
   align-items: center;
   justify-content: center;
   margin-bottom: 24px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #D4AF37, #F9E076);
   color: white;
 }
 
@@ -892,13 +892,13 @@ body {
   outline: none;
   border-color: var(--landing-accent);
   background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
 }
 
 .auth-btn {
   width: 100%;
   padding: 16px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #D4AF37, #F9E076);
   color: white;
   border: none;
   border-radius: 12px;
@@ -914,7 +914,7 @@ body {
 
 .auth-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 10px 20px rgba(212, 175, 55, 0.4);
 }
 
 .auth-footer {

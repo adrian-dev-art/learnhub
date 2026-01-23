@@ -20,7 +20,25 @@ from decimal import Decimal
 def mentor_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
-        if request.user.is_authenticated and request.user.is_mentor:
+        if request.user.is_authenticated and (request.user.role == 'penulis' or request.user.is_mentor):
+            return view_func(request, *args, **kwargs)
+        raise PermissionDenied
+    return _wrapped_view
+
+
+def admin_required(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if request.user.is_authenticated and request.user.role == 'admin':
+            return view_func(request, *args, **kwargs)
+        raise PermissionDenied
+    return _wrapped_view
+
+
+def owner_required(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if request.user.is_authenticated and request.user.role == 'owner':
             return view_func(request, *args, **kwargs)
         raise PermissionDenied
     return _wrapped_view
@@ -59,7 +77,7 @@ def student_dashboard(request):
         enrollments = Enrollment.objects.filter(
             user=request.user,
             payment_status='completed'
-        ).select_related('course')
+        )
 
         # Get all courses for catalog/recommendations
         all_courses = Course.objects.all()
@@ -243,7 +261,7 @@ def course_viewer(request, enrollment_id):
         completed = []
     else:
         # Normal enrollment mode
-        enrollment = get_object_or_404(Enrollment.objects.select_related('course'), id=enrollment_id, user_id=request.user.id)
+        enrollment = get_object_or_404(Enrollment, id=enrollment_id, user_id=request.user.id)
         course = enrollment.course
         modules = course.modules.all()
 
@@ -276,6 +294,10 @@ def course_viewer(request, enrollment_id):
         else:
             # Default to first incomplete
             current_module = first_incomplete or modules.last()
+
+    if not current_module and not is_preview:
+        messages.error(request, "This course has no modules yet.")
+        return redirect('student_dashboard')
 
     # Annotate modules with status for the template
     for m in modules:
@@ -383,7 +405,7 @@ def execute_code(request):
 @login_required
 def assessment_view(request, enrollment_id):
     """Course assessment view"""
-    enrollment = get_object_or_404(Enrollment.objects.select_related('course'), id=enrollment_id, user_id=request.user.id)
+    enrollment = get_object_or_404(Enrollment, id=enrollment_id, user_id=request.user.id)
     course = enrollment.course
 
     try:
@@ -418,7 +440,12 @@ def assessment_view(request, enrollment_id):
                 if user_answer == question.get('correct_answer'):
                     correct += 1
 
-            score = int((correct / len(assessment.questions)) * 100)
+            total_questions = len(assessment.questions)
+            if total_questions > 0:
+                score = int((correct / total_questions) * 100)
+            else:
+                score = 0
+
             passed = score >= assessment.passing_score
 
             # Save result
@@ -464,7 +491,7 @@ def assessment_view(request, enrollment_id):
 @login_required
 def certificate_view(request, enrollment_id):
     """View and download certificate"""
-    enrollment = get_object_or_404(Enrollment.objects.select_related('course'), id=enrollment_id, user_id=request.user.id)
+    enrollment = get_object_or_404(Enrollment, id=enrollment_id, user_id=request.user.id)
 
     try:
         certificate = Certificate.objects.get(enrollment_id=enrollment.id)
@@ -609,7 +636,7 @@ def mentor_commission_detail(request):
                 price = Decimal(str(price))
             course_prices[c.id] = price
 
-        all_enrollments = Enrollment.objects.select_related('user').all()
+        all_enrollments = Enrollment.objects.all()
         for en in all_enrollments:
             if en.course_id in course_ids and en.payment_status == 'completed':
                 price = course_prices.get(en.course_id, Decimal('0'))
@@ -632,6 +659,48 @@ def mentor_commission_detail(request):
         'total_commission': total_commission
     }
     return render(request, 'mentor/commission_detail.html', context)
+
+
+@login_required
+@admin_required
+def admin_dashboard(request):
+    """Admin dashboard - redirects to Django admin"""
+    return redirect('/admin/')
+
+
+@login_required
+@owner_required
+def owner_dashboard(request):
+    """Owner dashboard overview"""
+    # Calculate financial stats
+    total_revenue = Decimal('0')
+    all_enrollments = Enrollment.objects.filter(payment_status='completed')
+
+    for en in all_enrollments:
+        price = en.course.price
+        if hasattr(price, 'to_decimal'):
+            price = price.to_decimal()
+        elif not isinstance(price, Decimal):
+            price = Decimal(str(price))
+        total_revenue += price
+
+    platform_profit = total_revenue * Decimal('0.20')  # 20% commission
+
+    # Top courses
+    courses = Course.objects.all()
+    for c in courses:
+        c.enrollment_count = Enrollment.objects.filter(course=c, payment_status='completed').count()
+
+    top_courses = sorted(courses, key=lambda x: x.enrollment_count, reverse=True)[:5]
+    recent_enrollments = all_enrollments.order_by('-enrolled_at')[:10]
+
+    context = {
+        'total_revenue': total_revenue,
+        'platform_profit': platform_profit,
+        'top_courses': top_courses,
+        'recent_enrollments': recent_enrollments,
+    }
+    return render(request, 'owner/dashboard.html', context)
 
 
 
@@ -662,12 +731,12 @@ def progress_view(request):
     enrollments = Enrollment.objects.filter(
         user=request.user,
         payment_status='completed'
-    ).select_related('course')
+    )
 
     # Calculate stats
     total_enrolled = enrollments.count()
     completed_courses = 0
-    certificates = Certificate.objects.filter(user=request.user).select_related('course')
+    certificates = Certificate.objects.filter(user=request.user)
 
     active_courses = []
     completed_list = []
@@ -733,7 +802,7 @@ def mentor_course_detail(request, course_id):
     """Detailed view of a course for the mentor"""
     course = get_object_or_404(Course, id=course_id, mentor=request.user)
     modules = course.modules.all()
-    enrollments = Enrollment.objects.filter(course=course).select_related('user')
+    enrollments = Enrollment.objects.filter(course=course)
 
     # Calculate progress for each enrollment
     module_count = modules.count()

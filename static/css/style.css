@@ -1,48 +1,48 @@
 /* ===== Modern Learning Platform - Design System ===== */
 
 :root {
-  /* Primary Colors - Indigo Theme */
-  --primary: #6366f1;
-  --primary-dark: #4f46e5;
-  --primary-light: #e0e7ff;
-  --primary-lighter: #f5f7ff;
+  /* Primary Colors - Premium Gold & Dark Blue Theme */
+  --primary: #D4AF37;
+  --primary-dark: #996515;
+  --primary-light: #F9E076;
+  --primary-lighter: #FFF9E3;
 
   /* Secondary - Sidebar */
-  --sidebar-bg: #ffffff;
-  --sidebar-border: #f3f4f6;
-  --sidebar-text: #4b5563;
-  --sidebar-text-active: #6366f1;
-  --sidebar-bg-active: #f5f7ff;
+  --sidebar-bg: #0f172a;
+  --sidebar-border: #1e293b;
+  --sidebar-text: #94a3b8;
+  --sidebar-text-active: #D4AF37;
+  --sidebar-bg-active: rgba(212, 175, 55, 0.1);
 
   /* Accent Colors */
-  --accent: #6366f1;
+  --accent: #D4AF37;
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
   --info: #3b82f6;
 
-  /* Neutral Colors */
-  --white: #FFFFFF;
-  --bg-body: #F9FAFB;
-  --bg-card: #FFFFFF;
-  --text-main: #111827;
-  --text-muted: #6B7280;
-  --border-color: #E5E7EB;
+  /* Neutral Colors - Dark Theme Only */
+  --white: #1e293b;
+  --bg-body: #0f172a;
+  --bg-card: #1e293b;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-color: #334155;
 
-  --gray-50: #F9FAFB;
-  --gray-100: #F3F4F6;
-  --gray-200: #E5E7EB;
-  --gray-300: #D1D5DB;
-  --gray-400: #9CA3AF;
-  --gray-500: #6B7280;
-  --gray-600: #4B5563;
-  --gray-700: #374151;
-  --gray-800: #1F2937;
-  --gray-900: #111827;
+  --gray-50: #0f172a;
+  --gray-100: #1e293b;
+  --gray-200: #334155;
+  --gray-300: #475569;
+  --gray-400: #64748b;
+  --gray-500: #94a3b8;
+  --gray-600: #cbd5e1;
+  --gray-700: #e2e8f0;
+  --gray-800: #f1f5f9;
+  --gray-900: #f8fafc;
 
   /* Glassmorphism */
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
   --glass-blur: blur(12px);
 
   /* Typography */
@@ -96,28 +96,6 @@
   --header-height: 70px;
 }
 
-.dark-mode {
-  --bg-body: #0f172a;
-  --bg-card: #1e293b;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --border-color: #334155;
-
-  --sidebar-bg: #1e293b;
-  --sidebar-border: #334155;
-  --sidebar-text: #94a3b8;
-  --sidebar-bg-active: rgba(99, 102, 241, 0.1);
-
-  --white: #1e293b;
-  --gray-50: #0f172a;
-  --gray-100: #1e293b;
-  --gray-200: #334155;
-  --gray-900: #f8fafc;
-
-  --glass-bg: rgba(30, 41, 59, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.1);
-}
-
 /* ===== Reset & Base ===== */
 * {
   margin: 0;
@@ -161,7 +139,6 @@ main {
   border: 1px solid var(--sidebar-border);
   box-shadow: var(--shadow-xl);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
 }
 
 .sidebar.collapsed {
@@ -210,9 +187,18 @@ main {
   justify-content: center;
   cursor: pointer;
   z-index: 1001;
-  border: 2px solid var(--white);
+  border: 2px solid var(--sidebar-bg);
   box-shadow: var(--shadow-md);
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
+}
+
+.sidebar-toggle:hover {
+  background: var(--primary-dark);
+  transform: scale(1.1);
+}
+
+.sidebar.collapsed .sidebar-toggle:hover {
+  transform: rotate(180deg) scale(1.1);
 }
 
 .sidebar.collapsed .sidebar-toggle {
@@ -475,14 +461,15 @@ main {
   overflow: hidden;
   transition: all var(--transition-base);
   border: 1px solid var(--border-color);
+  width: 100%;
 }
 
 /* Premium Course Card (Glassmorphism) */
 .premium-card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-border);
+  background: rgba(30, 41, 59, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
   border-radius: 24px;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -490,12 +477,13 @@ main {
   height: 100%;
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .premium-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  border-color: rgba(99, 102, 241, 0.4);
+  border-color: rgba(212, 175, 55, 0.4);
 }
 
 .premium-card .card-image-wrap {
@@ -700,15 +688,15 @@ main {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
-  color: var(--white);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  color: #0f172a;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
 }
 
 .btn-primary:hover {
   background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
 }
 
 .btn-secondary {
@@ -744,19 +732,19 @@ main {
 /* ===== Grid System ===== */
 .grid {
   display: grid;
-  gap: var(--spacing-xl);
+  gap: var(--spacing-2xl);
 }
 
 .grid-2 {
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .grid-3 {
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .grid-4 {
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
 }
 
 /* ===== Badges ===== */
@@ -792,7 +780,7 @@ main {
 
 /* ===== Statistics Cards ===== */
 .stat-card {
-  background: var(--white);
+  background: var(--bg-card);
   padding: var(--spacing-xl);
   border-radius: var(--radius-2xl);
   display: flex;
@@ -800,12 +788,14 @@ main {
   gap: var(--spacing-lg);
   box-shadow: var(--shadow-md);
   transition: all var(--transition-base);
-  border: 1px solid var(--gray-200);
+  border: 1px solid var(--border-color);
+  width: 100%;
 }
 
 .stat-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-xl);
+  border-color: var(--primary);
 }
 
 .stat-icon {
@@ -819,23 +809,23 @@ main {
 }
 
 .stat-icon.orange {
-  background: var(--primary-lighter);
+  background: rgba(212, 175, 55, 0.1);
   color: var(--primary);
 }
 
 .stat-icon.green {
-  background: #D1FAE5;
-  color: #059669;
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
 }
 
 .stat-icon.blue {
-  background: #DBEAFE;
-  color: #2563EB;
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--info);
 }
 
 .stat-icon.purple {
-  background: #F3E8FF;
-  color: #9333EA;
+  background: rgba(167, 139, 250, 0.1);
+  color: #a78bfa;
 }
 
 .stat-info h3 {
@@ -1127,14 +1117,17 @@ main {
 
 .course-card-horizontal {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--spacing-lg);
   background: var(--bg-card);
   border-radius: var(--radius-xl);
-  padding: var(--spacing-md);
+  padding: var(--spacing-lg);
   border: 1px solid var(--border-color);
   transition: all var(--transition-base);
   text-decoration: none;
   color: inherit;
+  min-height: 140px;
+  width: 100%;
 }
 
 .course-card-horizontal:hover {
@@ -1144,10 +1137,11 @@ main {
 }
 
 .course-card-horizontal .course-img {
-  width: 120px;
-  height: 120px;
+  width: 100px;
+  height: 100px;
   border-radius: var(--radius-lg);
   object-fit: cover;
+  flex-shrink: 0;
 }
 
 .course-card-horizontal .course-content {
@@ -1172,16 +1166,6 @@ main {
   gap: var(--spacing-md);
 }
 
-.stat-card {
-  background: var(--bg-card);
-  padding: var(--spacing-xl);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-lg);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
-}
 
 .stat-icon {
   width: 56px;
@@ -1206,11 +1190,6 @@ main {
 }
 
 /* ===== Course Detail & Viewer Components ===== */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--spacing-xl);
-}
 
 .course-header-grid {
   display: grid;
@@ -1403,7 +1382,7 @@ main {
 
 .thumbnail-placeholder {
   height: 220px;
-  background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1492,7 +1471,7 @@ main {
 
 .progress-bar-fill {
   height: 100%;
-  background: linear-gradient(to right, var(--primary), #818cf8);
+  background: linear-gradient(to right, var(--primary), var(--primary-light));
   border-radius: var(--radius-full);
   transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
   width: var(--progress, 0%);

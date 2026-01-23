@@ -1,7 +1,7 @@
 {% extends 'shared/base.html' %}
 {% load static %}
 
-{% block title %}Dashboard - LearnHub{% endblock %}
+{% block title %}Dashboard - GampangBelajar{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
@@ -62,7 +62,7 @@
         <img src="{{ enrollment.course.thumbnail.url }}" alt="{{ enrollment.course.title }}" class="course-img">
         {% else %}
         <div class="course-img"
-          style="background: var(--primary-lighter); display: flex; align-items: center; justify-content: center;">
+          style="background: rgba(212, 175, 55, 0.1); display: flex; align-items: center; justify-content: center;">
           <span class="material-icons" style="color: var(--primary); font-size: 40px;">school</span>
         </div>
         {% endif %}
@@ -104,8 +104,8 @@
           <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="card-img">
           {% else %}
           <div class="card-img"
-            style="background: linear-gradient(135deg, #6366f1, #a78bfa); display: flex; align-items: center; justify-content: center;">
-            <span class="material-icons" style="color: white; font-size: 60px;">library_books</span>
+            style="background: linear-gradient(135deg, #1e293b, #0f172a); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--border-color);">
+            <span class="material-icons" style="color: var(--primary); font-size: 60px;">library_books</span>
           </div>
           {% endif %}
           <div class="student-avatars">

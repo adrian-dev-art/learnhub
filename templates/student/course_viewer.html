@@ -315,7 +315,7 @@
       }).length;
       const score = Math.round((correctCount / quizData.length) * 100);
 
-      const url = '{% url "save_module_quiz_progress" enrollment.id current_module.id|default:0 %}';
+      const url = '{% url "save_module_quiz_progress" enrollment.id 999999 %}'.replace('999999', '{{ current_module.id|default:0 }}');
       fetch(url, {
         method: 'POST',
         headers: {
@@ -341,8 +341,11 @@
 
   {% if not is_preview %}
   function markCompleteAndNext(moduleId) {
-    if (!moduleId) return;
-    const url = '{% url "mark_module_complete" enrollment.id 0 %}'.replace('0', moduleId);
+    if (!moduleId || moduleId === '0' || moduleId === 0) return;
+
+    // Use a unique placeholder to avoid replacing parts of the enrollment ID
+    const url = '{% url "mark_module_complete" enrollment.id 999999 %}'.replace('999999', moduleId);
+
     fetch(url, {
       method: 'POST',
       headers: {

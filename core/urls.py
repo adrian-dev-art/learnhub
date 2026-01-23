@@ -49,4 +49,10 @@ urlpatterns = [
     path('mentor/course/<int:course_id>/module/add/', views.mentor_module_add, name='mentor_module_add'),
     path('mentor/module/<int:module_id>/edit/', views.mentor_module_edit, name='mentor_module_edit'),
     path('mentor/module/import-content/', views.import_module_content, name='import_module_content'),
+    path('mentor/module/<int:module_id>/edit/', views.mentor_module_edit, name='mentor_module_edit'),
+    path('mentor/module/import-content/', views.import_module_content, name='import_module_content'),
+
+    # Admin & Owner
+    path('admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('owner/dashboard/', views.owner_dashboard, name='owner_dashboard'),
 ]

@@ -1,7 +1,7 @@
 {% extends 'shared/base.html' %}
 {% load humanize %}
 
-{% block title %}Course Catalog - LearnHub{% endblock %}
+{% block title %}Course Catalog - GampangBelajar{% endblock %}
 {% block page_title %}Course Catalog{% endblock %}
 
 {% block content %}
@@ -26,7 +26,7 @@
         <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="card-img">
         {% else %}
         <div class="card-img"
-          style="background: linear-gradient(135deg, #6366f1, #a78bfa); display: flex; align-items: center; justify-content: center;">
+          style="background: linear-gradient(135deg, var(--primary), var(--primary-light)); display: flex; align-items: center; justify-content: center;">
           <span class="material-icons" style="color: white; font-size: 60px;">library_books</span>
         </div>
         {% endif %}

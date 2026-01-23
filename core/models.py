@@ -6,14 +6,37 @@ import string
 
 class User(AbstractUser):
     """Extended user model with email verification"""
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('owner', 'Owner'),
+        ('penulis', 'Penulis'),
+        ('pembaca', 'Pembaca'),
+    ]
+
     email_verified = models.BooleanField(default=False)
     phone = models.CharField(max_length=20, blank=True)
     profile_completed = models.BooleanField(default=False)
+    # is_mentor is deprecated in favor of role='penulis'
     is_mentor = models.BooleanField(default=False)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='pembaca')
     bank_account_number = models.CharField(max_length=50, blank=True, help_text="For mentor payouts")
 
     class Meta:
         db_table = 'users'
+
+    def save(self, *args, **kwargs):
+        # Backward compatibility: sync is_mentor with role
+        if self.is_mentor and self.role == 'pembaca':
+            self.role = 'penulis'
+        elif self.role == 'penulis':
+            self.is_mentor = True
+
+        # Sync admin role with Django permissions
+        if self.role == 'admin':
+            self.is_staff = True
+            self.is_superuser = True
+
+        super().save(*args, **kwargs)
 
 
 class Course(models.Model):
