@@ -1,8 +1,29 @@
 {% extends 'shared/base.html' %}
-{% load static %}
+{% load static admin_dashboard_tags %}
 
 {% block title %}Commission Details - GampangBelajar{% endblock %}
 {% block page_title %}Commission Details{% endblock %}
+
+{% block extra_css %}
+<style>
+  .badge-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .status-paid {
+    background: #ecfdf5;
+    color: #10b981;
+  }
+
+  .status-pending {
+    background: #fff7ed;
+    color: #f59e0b;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -15,11 +36,11 @@
           Total Commission
         </h2>
         <p style="color: rgba(255, 255, 255, 0.9); font-size: var(--font-size-lg);">
-          Your earnings from course sales (20%)
+          Your earnings based on platform commission rules
         </p>
       </div>
       <div style="text-align: right; color: white;">
-        <div style="font-size: var(--font-size-3xl); font-weight: 800;">Rp. {{ total_commission|floatformat:0 }}</div>
+        <div style="font-size: var(--font-size-3xl); font-weight: 800;">Rp {{ total_commission|rupiah }}</div>
       </div>
     </div>
   </div>
@@ -44,30 +65,42 @@
             <th>Date</th>
             <th>Course</th>
             <th>Student</th>
-            <th>Course Price</th>
-            <th>Commission (20%)</th>
+            <th>Rate</th>
+            <th>Commission</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
-          {% for detail in commission_details %}
+          {% for comm in commissions %}
           <tr>
-            <td style="color: var(--text-muted);">{{ detail.date|date:"M d, Y H:i" }}</td>
-            <td style="font-weight: 600; color: var(--text-main);">{{ detail.course_title }}</td>
+            <td style="color: var(--text-muted);">{{ comm.created_at|date:"M d, Y H:i" }}</td>
+            <td style="font-weight: 600; color: var(--text-main);">{{ comm.course.title }}</td>
             <td>
               <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
                 <div
                   style="width: 32px; height: 32px; background: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px;">
-                  {{ detail.student_name|first|upper }}
+                  {{ comm.enrollment.user.username|first|upper }}
                 </div>
-                <span>{{ detail.student_name }}</span>
+                <span>{{ comm.enrollment.user.get_full_name|default:comm.enrollment.user.username }}</span>
               </div>
             </td>
-            <td>Rp. {{ detail.price|floatformat:0 }}</td>
-            <td style="font-weight: 700; color: #10b981;">+ Rp. {{ detail.commission|floatformat:0 }}</td>
+            <td>
+              {% if comm.rate_type == 'percentage' %}
+              {{ comm.rate_value|floatformat:0 }}%
+              {% else %}
+              Rp {{ comm.rate_value|rupiah }}
+              {% endif %}
+            </td>
+            <td style="font-weight: 700; color: #10b981;">+ Rp {{ comm.amount|rupiah }}</td>
+            <td>
+              <span class="badge-status {% if comm.status == 'paid' %}status-paid{% else %}status-pending{% endif %}">
+                {{ comm.get_status_display }}
+              </span>
+            </td>
           </tr>
           {% empty %}
           <tr>
-            <td colspan="5" style="text-align: center; padding: var(--spacing-4xl);">
+            <td colspan="6" style="text-align: center; padding: var(--spacing-4xl);">
               <div
                 style="width: 64px; height: 64px; margin: 0 auto var(--spacing-md); background: var(--gray-100); border-radius: var(--radius-xl); display: flex; align-items: center; justify-content: center;">
                 <span class="material-icons" style="font-size: 32px; color: var(--text-muted);">receipt_long</span>

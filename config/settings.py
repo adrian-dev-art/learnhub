@@ -68,8 +68,15 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database - SQLite (Switched from MongoDB for stability)
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'gampangbelajar',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
 
@@ -123,8 +130,8 @@ PAYMENT_MODE = config('PAYMENT_MODE', default='demo')
 
 # Unfold Admin Configuration
 UNFOLD = {
-    "SITE_TITLE": "Learning App Admin",
-    "SITE_HEADER": "Learning App Administration",
+    "SITE_TITLE": "GampangBelajar Admin",
+    "SITE_HEADER": "GampangBelajar",
     "SITE_URL": "/",
     "COLORS": {
         "primary": {

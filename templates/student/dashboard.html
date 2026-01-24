@@ -20,7 +20,7 @@
   <!-- Stats Overview -->
   <div class="grid grid-3 dashboard-section">
     <div class="stat-card">
-      <div class="stat-icon" style="background: var(--primary-light); color: var(--primary);">
+      <div class="stat-icon" style="background: rgba(212, 175, 55, 0.15); color: #D4AF37;">
         <span class="material-icons">menu_book</span>
       </div>
       <div class="stat-info">
@@ -29,7 +29,7 @@
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background: #dcfce7; color: #10b981;">
+      <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
         <span class="material-icons">check_circle</span>
       </div>
       <div class="stat-info">
@@ -38,7 +38,7 @@
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background: #fef3c7; color: #f59e0b;">
+      <div class="stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
         <span class="material-icons">stars</span>
       </div>
       <div class="stat-info">
@@ -88,90 +88,5 @@
   </div>
   {% endif %}
 
-  <!-- Best Sellers / Recommendations -->
-  <div class="dashboard-section">
-    <div class="section-header-flex">
-      <h2>Best Sellers</h2>
-      <a href="{% url 'catalog' %}" style="color: var(--primary); font-weight: 600; text-decoration: none;">Explore
-        Catalog</a>
-    </div>
-    <div class="grid grid-3">
-      {% for course in best_sellers %}
-      <div class="premium-card">
-        <div class="card-image-wrap">
-          <span class="badge-bestseller">Bestseller</span>
-          {% if course.thumbnail %}
-          <img src="{{ course.thumbnail.url }}" alt="{{ course.title }}" class="card-img">
-          {% else %}
-          <div class="card-img"
-            style="background: linear-gradient(135deg, #1e293b, #0f172a); display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--border-color);">
-            <span class="material-icons" style="color: var(--primary); font-size: 60px;">library_books</span>
-          </div>
-          {% endif %}
-          <div class="student-avatars">
-            <img src="https://i.pravatar.cc/150?u=1" class="avatar-stack" alt="Student">
-            <img src="https://i.pravatar.cc/150?u=2" class="avatar-stack" alt="Student">
-            <img src="https://i.pravatar.cc/150?u=3" class="avatar-stack" alt="Student">
-            <img src="https://i.pravatar.cc/150?u=4" class="avatar-stack" alt="Student">
-          </div>
-        </div>
-        <div class="card-content">
-          <span class="category-badge">{{ course.get_level_display }}</span>
-          <h3 class="card-title">{{ course.title }}</h3>
-
-          <div class="rating-wrap">
-            <div class="stars">
-              <span class="material-icons">star</span>
-              <span class="material-icons">star</span>
-              <span class="material-icons">star</span>
-              <span class="material-icons">star</span>
-              <span class="material-icons">star_half</span>
-            </div>
-            <span class="rating-text">4.5 (120 Reviews)</span>
-          </div>
-
-          <div class="card-footer">
-            <div class="price-wrap">
-              <span class="current-price">Rp. {{ course.price|floatformat:0 }}</span>
-              <span class="old-price">Rp. {{ course.price|add:49|floatformat:0 }}</span>
-            </div>
-            <div class="lesson-count">
-              <span class="material-icons">menu_book</span>
-              <span>{{ course.modules.count }} Lesson{{ course.modules.count|pluralize }}</span>
-            </div>
-          </div>
-
-          <a href="{% url 'course_detail' course.id %}" class="btn btn-primary btn-sm"
-            style="margin-top: 20px; width: 100%;">
-            View Details
-          </a>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-
-  <!-- Related Courses -->
-  <div class="dashboard-section">
-    <div class="section-header-flex">
-      <h2>Related for You</h2>
-    </div>
-    <div class="grid grid-3">
-      {% for course in related_courses %}
-      <div class="card">
-        <div class="card-body">
-          <h3 class="card-title" style="font-size: var(--font-size-base);">{{ course.title }}</h3>
-          <div
-            style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--spacing-md);">
-            <span style="color: var(--gray-500); font-size: var(--font-size-sm);">{{ course.duration_hours }}h
-              total</span>
-            <a href="{% url 'course_detail' course.id %}"
-              style="color: var(--primary); text-decoration: none; font-weight: 600; font-size: var(--font-size-sm);">View</a>
-          </div>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
 </div>
 {% endblock %}

@@ -54,3 +54,17 @@ def get_admin_stats():
         'top_courses_data': json.dumps([c['count'] for c in top_courses]),
         'recent_enrollments': recent_enrollments
     }
+
+@register.filter
+def rupiah(value):
+    """Format value as Rupiah: 1.000.000"""
+    try:
+        if value is None:
+            return "0"
+        # Handle Decimal128 or other types
+        if hasattr(value, 'to_decimal'):
+            value = value.to_decimal()
+        val = float(value)
+        return "{:,.0f}".format(val).replace(",", ".")
+    except (ValueError, TypeError):
+        return value

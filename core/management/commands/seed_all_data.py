@@ -5,7 +5,9 @@ Usage: python manage.py seed_all_data
 """
 
 from django.core.management.base import BaseCommand
-from core.models import User, Course, Module, Assessment
+from core.models import User, Course, Module, Assessment, Enrollment, Commission, CommissionRate
+from django.utils import timezone
+from decimal import Decimal
 from django.contrib.auth.hashers import make_password
 
 
@@ -18,11 +20,16 @@ class Command(BaseCommand):
         # Create users
         self.create_users()
 
+        mentor = User.objects.get(username='mentor')
+
         # Create courses
-        self.create_python_course()
-        self.create_javascript_course()
-        self.create_web_dev_course()
-        self.create_data_science_course()
+        self.create_python_course(mentor)
+        self.create_javascript_course(mentor)
+        self.create_web_dev_course(mentor)
+        self.create_data_science_course(mentor)
+
+        # Create enrollments and commissions for analytics
+        self.create_enrollments_and_commissions()
 
         self.stdout.write(self.style.SUCCESS('\n✅ Database seeded successfully!'))
         self.stdout.write(self.style.SUCCESS('\nTest Accounts Created:'))
@@ -92,7 +99,7 @@ class Command(BaseCommand):
                 )
                 self.stdout.write(f'  ✓ Created student{i}')
 
-    def create_python_course(self):
+    def create_python_course(self, mentor):
         """Create Python Programming course"""
         self.stdout.write('\nCreating Python Programming course...')
 
@@ -100,7 +107,8 @@ class Command(BaseCommand):
             title='Python Programming Fundamentals',
             defaults={
                 'description': 'Master Python from scratch! Learn variables, data types, control structures, functions, and OOP. Perfect for beginners with hands-on coding exercises.',
-                'price': 49.99,
+                'mentor': mentor,
+                'price': Decimal('49.99'),
                 'level': 'beginner',
                 'duration_hours': 12,
                 'is_active': True
@@ -310,7 +318,7 @@ Remember: Practice makes perfect. Keep coding!'''
             )
             self.stdout.write('  ✓ Created assessment')
 
-    def create_javascript_course(self):
+    def create_javascript_course(self, mentor):
         """Create JavaScript course"""
         self.stdout.write('\nCreating JavaScript course...')
 
@@ -318,7 +326,8 @@ Remember: Practice makes perfect. Keep coding!'''
             title='JavaScript Essentials',
             defaults={
                 'description': 'Learn JavaScript, the language of the web! Master DOM manipulation, events, ES6 features, and async programming. Build interactive web applications.',
-                'price': 59.99,
+                'mentor': mentor,
+                'price': Decimal('59.99'),
                 'level': 'beginner',
                 'duration_hours': 15,
                 'is_active': True
@@ -429,7 +438,7 @@ console.log(greetShort("Arrow"));'''
             )
             self.stdout.write('  ✓ Created assessment')
 
-    def create_web_dev_course(self):
+    def create_web_dev_course(self, mentor):
         """Create Web Development course"""
         self.stdout.write('\nCreating Web Development course...')
 
@@ -437,7 +446,8 @@ console.log(greetShort("Arrow"));'''
             title='Complete Web Development Bootcamp',
             defaults={
                 'description': 'Become a full-stack web developer! Learn HTML, CSS, JavaScript, responsive design, and modern frameworks. Build real-world projects from scratch.',
-                'price': 79.99,
+                'mentor': mentor,
+                'price': Decimal('79.99'),
                 'level': 'intermediate',
                 'duration_hours': 25,
                 'is_active': True
@@ -569,7 +579,7 @@ h1 {
             )
             self.stdout.write('  ✓ Created assessment')
 
-    def create_data_science_course(self):
+    def create_data_science_course(self, mentor):
         """Create Data Science course"""
         self.stdout.write('\nCreating Data Science course...')
 
@@ -577,7 +587,8 @@ h1 {
             title='Data Science with Python',
             defaults={
                 'description': 'Master data science fundamentals! Learn NumPy, Pandas, data visualization, machine learning basics, and statistical analysis. Work with real datasets.',
-                'price': 89.99,
+                'mentor': mentor,
+                'price': Decimal('89.99'),
                 'level': 'advanced',
                 'duration_hours': 30,
                 'is_active': True
@@ -710,3 +721,101 @@ Good luck with your analysis!'''
                 }
             )
             self.stdout.write('  ✓ Created assessment')
+
+    def create_enrollments_and_commissions(self):
+        """Create sample enrollments and commissions for analytics"""
+        self.stdout.write('\nCreating enrollments and commissions...')
+
+        student1 = User.objects.get(username='student1')
+        student2 = User.objects.get(username='student2')
+        mentor = User.objects.get(username='mentor')
+        admin = User.objects.get(username='admin')
+
+        courses = Course.objects.all()
+
+        # Create Commission Rates
+        CommissionRate.objects.get_or_create(
+            role='penulis',
+            course=None,
+            defaults={'rate_type': 'percentage', 'percentage': Decimal('70.00')}
+        )
+        CommissionRate.objects.get_or_create(
+            role='admin',
+            course=None,
+            defaults={'rate_type': 'percentage', 'percentage': Decimal('10.00')}
+        )
+        CommissionRate.objects.get_or_create(
+            role='layanan',
+            course=None,
+            defaults={'rate_type': 'flat', 'flat_amount': Decimal('5000.00')}
+        )
+        self.stdout.write('  ✓ Created commission rates')
+
+        # Create Enrollments
+        for i, course in enumerate(courses):
+            # Student 1 enrolls in all courses
+            enr1, created = Enrollment.objects.get_or_create(
+                user=student1,
+                course=course,
+                defaults={'payment_status': 'completed', 'completed': True}
+            )
+            if created:
+                # Mentor commission (70%)
+                Commission.objects.create(
+                    user=mentor,
+                    role='penulis',
+                    enrollment=enr1,
+                    course=course,
+                    amount=(course.price * Decimal('0.7')).quantize(Decimal('0.01')),
+                    rate_type='percentage',
+                    rate_value=Decimal('70.00'),
+                    status='paid',
+                    paid_at=timezone.now(),
+                    note=f"Commission for {course.title}"
+                )
+                # Admin commission (10%)
+                Commission.objects.create(
+                    user=admin,
+                    role='admin',
+                    enrollment=enr1,
+                    course=course,
+                    amount=(course.price * Decimal('0.1')).quantize(Decimal('0.01')),
+                    rate_type='percentage',
+                    rate_value=Decimal('10.00'),
+                    status='pending',
+                    note=f"Platform fee for {course.title}"
+                )
+                # Layanan commission (Flat Rp 5.000)
+                Commission.objects.create(
+                    user=admin, # Using admin as proxy for layanan for now
+                    role='layanan',
+                    enrollment=enr1,
+                    course=course,
+                    amount=Decimal('5000.00'),
+                    rate_type='flat',
+                    rate_value=Decimal('5000.00'),
+                    status='pending',
+                    note=f"Service fee for {course.title}"
+                )
+
+            # Student 2 enrolls in first 2 courses
+            if i < 2:
+                enr2, created = Enrollment.objects.get_or_create(
+                    user=student2,
+                    course=course,
+                    defaults={'payment_status': 'completed'}
+                )
+                if created:
+                    Commission.objects.create(
+                        user=mentor,
+                        role='penulis',
+                        enrollment=enr2,
+                        course=course,
+                        amount=(course.price * Decimal('0.7')).quantize(Decimal('0.01')),
+                        rate_type='percentage',
+                        rate_value=Decimal('70.00'),
+                        status='pending',
+                        note=f"Commission for {course.title}"
+                    )
+
+        self.stdout.write('  ✓ Created sample enrollments and commissions')

@@ -1,54 +1,80 @@
-{% extends 'base.html' %}
+{% extends 'shared/base.html' %}
+{% load admin_dashboard_tags %}
+
+{% block title %}Owner Dashboard - GampangBelajar{% endblock %}
+{% block page_title %}Owner Dashboard{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-  <h1 class="text-3xl font-bold mb-8">Owner Dashboard</h1>
-
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-    <div class="bg-white p-6 rounded-lg shadow-md">
-      <h3 class="text-xl font-semibold mb-2">Total Revenue</h3>
-      <p class="text-4xl font-bold text-green-600">Rp {{ total_revenue }}</p>
+<div class="container">
+  <!-- Financial Overview -->
+  <div class="stats-grid mb-4">
+    <div class="stat-card">
+      <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+        <span class="material-icons">payments</span>
+      </div>
+      <div class="stat-info">
+        <h3>Rp {{ total_revenue|rupiah }}</h3>
+        <p>Total Revenue</p>
+      </div>
     </div>
-    <div class="bg-white p-6 rounded-lg shadow-md">
-      <h3 class="text-xl font-semibold mb-2">Platform Profit (20%)</h3>
-      <p class="text-4xl font-bold text-blue-600">Rp {{ platform_profit }}</p>
+
+    <div class="stat-card">
+      <div class="stat-icon" style="background: rgba(59, 130, 246, 0.15); color: #3b82f6;">
+        <span class="material-icons">account_balance</span>
+      </div>
+      <div class="stat-info">
+        <h3>Rp {{ platform_profit|rupiah }}</h3>
+        <p>Platform Profit</p>
+      </div>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-      <h2 class="text-2xl font-bold p-6 bg-gray-50 border-b">Top Performing Courses</h2>
-      <ul class="divide-y divide-gray-200">
+  <div class="grid-2-col">
+    <!-- Top Courses -->
+    <div class="content-card">
+      <div class="card-header-premium">
+        <span class="material-icons">trending_up</span>
+        <h2>Top Performing Courses</h2>
+      </div>
+      <div class="list-container">
         {% for course in top_courses %}
-        <li class="p-4 flex justify-between items-center">
-          <div>
-            <p class="font-semibold">{{ course.title }}</p>
-            <p class="text-sm text-gray-500">Mentor: {{ course.mentor.username }}</p>
+        <div class="list-item-premium">
+          <div class="item-details">
+            <span class="item-title">{{ course.title }}</span>
+            <span class="item-meta">Mentor: {{ course.mentor }}</span>
           </div>
-          <div class="text-right">
-            <p class="font-bold">{{ course.enrollment_count }} enrollments</p>
+          <div class="item-action">
+            <span class="badge-premium">{{ course.enrollment_count }} enrollments</span>
           </div>
-        </li>
+        </div>
+        {% empty %}
+        <p class="text-muted p-4 text-center">No course data available.</p>
         {% endfor %}
-      </ul>
+      </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-      <h2 class="text-2xl font-bold p-6 bg-gray-50 border-b">Recent Enrollments</h2>
-      <ul class="divide-y divide-gray-200">
+    <!-- Recent Enrollments -->
+    <div class="content-card">
+      <div class="card-header-premium">
+        <span class="material-icons">history</span>
+        <h2>Recent Enrollments</h2>
+      </div>
+      <div class="list-container">
         {% for enrollment in recent_enrollments %}
-        <li class="p-4">
-          <div class="flex justify-between">
-            <span class="font-semibold">{{ enrollment.user.username }}</span>
-            <span class="text-green-600">Paid</span>
+        <div class="list-item-premium">
+          <div class="item-details">
+            <span class="item-title">{{ enrollment.user.username }}</span>
+            <span class="item-meta">{{ enrollment.course.title }}</span>
           </div>
-          <div class="flex justify-between text-sm text-gray-500">
-            <span>{{ enrollment.course.title }}</span>
-            <span>{{ enrollment.enrolled_at|date:"M d, Y" }}</span>
+          <div class="item-action" style="text-align: right;">
+            <span class="badge-success-premium" style="display: inline-block; margin-bottom: 4px;">Paid</span>
+            <div class="item-meta" style="font-size: 11px;">{{ enrollment.enrolled_at|date:"M d, Y" }}</div>
           </div>
-        </li>
+        </div>
+        {% empty %}
+        <p class="text-muted p-4 text-center">No recent enrollments.</p>
         {% endfor %}
-      </ul>
+      </div>
     </div>
   </div>
 </div>

@@ -1,5 +1,5 @@
 {% extends 'shared/base.html' %}
-{% load humanize %}
+{% load humanize admin_dashboard_tags %}
 
 {% block title %}Course Catalog - GampangBelajar{% endblock %}
 {% block page_title %}Course Catalog{% endblock %}
@@ -30,11 +30,6 @@
           <span class="material-icons" style="color: white; font-size: 60px;">library_books</span>
         </div>
         {% endif %}
-        <div class="student-avatars">
-          <img src="https://i.pravatar.cc/150?u=5" class="avatar-stack" alt="Student">
-          <img src="https://i.pravatar.cc/150?u=6" class="avatar-stack" alt="Student">
-          <img src="https://i.pravatar.cc/150?u=7" class="avatar-stack" alt="Student">
-        </div>
       </div>
       <div class="card-content">
         <span class="category-badge">{{ course.get_level_display }}</span>
@@ -53,7 +48,7 @@
 
         <div class="card-footer">
           <div class="price-wrap">
-            <span class="current-price">Rp. {{ course.display_price|floatformat:0 }}</span>
+            <span class="current-price">Rp {{ course.display_price|rupiah }}</span>
           </div>
           <div class="lesson-count">
             <span class="material-icons">menu_book</span>

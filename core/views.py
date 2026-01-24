@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.db import models
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from .models import Course, Module, Enrollment, Assessment, AssessmentResult, Certificate, User
+from .models import Course, Module, Enrollment, Assessment, AssessmentResult, Certificate, User, Commission, CommissionRate
 from .forms import CustomUserCreationForm, ProfileForm, AssessmentSubmissionForm, CourseForm, ModuleForm, AssessmentForm
 from .utils import send_access_key_email, execute_python_code, generate_certificate_pdf, parse_docx_to_modules
 import tempfile
@@ -567,40 +568,19 @@ def logout_view(request):
 def mentor_dashboard(request):
     """Mentor dashboard overview"""
     # Get courses mentored by the user
-    all_courses = Course.objects.all()
-    mentor_courses = [c for c in all_courses if c.mentor_id == request.user.id]
+    mentor_courses = Course.objects.filter(mentor=request.user)
 
     # Stats
-    total_courses = len(mentor_courses)
-    total_enrollments = 0
-    completed_enrollments = 0
+    total_courses = mentor_courses.count()
 
-    # Manual counting to avoid complex JOINs or IN queries that fail in Djongo
-    total_revenue = Decimal('0')
-    if mentor_courses:
-        course_ids = [c.id for c in mentor_courses]
+    # Get enrollments for mentor's courses
+    mentor_enrollments = Enrollment.objects.filter(course__mentor=request.user)
+    total_enrollments = mentor_enrollments.count()
+    completed_enrollments = mentor_enrollments.filter(completed=True).count()
 
-        # Create a map of prices, ensuring they are Decimal
-        course_prices = {}
-        for c in mentor_courses:
-            price = c.price
-            # Handle potential Decimal128 from MongoDB/Djongo
-            if hasattr(price, 'to_decimal'):
-                price = price.to_decimal()
-            elif not isinstance(price, Decimal):
-                price = Decimal(str(price))
-            course_prices[c.id] = price
-
-        all_enrollments = Enrollment.objects.all()
-        for en in all_enrollments:
-            if en.course_id in course_ids:
-                total_enrollments += 1
-                if en.completed:
-                    completed_enrollments += 1
-                if en.payment_status == 'completed':
-                    total_revenue += course_prices.get(en.course_id, Decimal('0'))
-
-    total_commission = int(total_revenue * Decimal('0.20'))
+    # Get total commission from Commission model
+    commissions = Commission.objects.filter(user=request.user)
+    total_commission = commissions.aggregate(total=models.Sum('amount'))['total'] or Decimal('0')
 
     context = {
         'courses': mentor_courses,
@@ -616,46 +596,12 @@ def mentor_dashboard(request):
 @mentor_required
 def mentor_commission_detail(request):
     """Detailed view of commission earnings"""
-    all_courses = Course.objects.all()
-    mentor_courses = [c for c in all_courses if c.mentor_id == request.user.id]
+    commissions = Commission.objects.filter(user=request.user).select_related('course', 'enrollment__user').order_by('-created_at')
 
-    commission_details = []
-    total_commission = Decimal('0')
-
-    if mentor_courses:
-        course_map = {c.id: c for c in mentor_courses}
-        course_ids = list(course_map.keys())
-
-        # Create a map of prices, ensuring they are Decimal
-        course_prices = {}
-        for c in mentor_courses:
-            price = c.price
-            if hasattr(price, 'to_decimal'):
-                price = price.to_decimal()
-            elif not isinstance(price, Decimal):
-                price = Decimal(str(price))
-            course_prices[c.id] = price
-
-        all_enrollments = Enrollment.objects.all()
-        for en in all_enrollments:
-            if en.course_id in course_ids and en.payment_status == 'completed':
-                price = course_prices.get(en.course_id, Decimal('0'))
-                commission = price * Decimal('0.20')
-                total_commission += commission
-
-                commission_details.append({
-                    'course_title': course_map[en.course_id].title,
-                    'student_name': en.user.get_full_name() or en.user.username,
-                    'date': en.enrolled_at,
-                    'price': price,
-                    'commission': commission
-                })
-
-    # Sort by date descending
-    commission_details.sort(key=lambda x: x['date'], reverse=True)
+    total_commission = commissions.aggregate(total=models.Sum('amount'))['total'] or Decimal('0')
 
     context = {
-        'commission_details': commission_details,
+        'commissions': commissions,
         'total_commission': total_commission
     }
     return render(request, 'mentor/commission_detail.html', context)
@@ -672,10 +618,10 @@ def admin_dashboard(request):
 @owner_required
 def owner_dashboard(request):
     """Owner dashboard overview"""
-    # Calculate financial stats
-    total_revenue = Decimal('0')
+    # Calculate financial stats from Commission model
+    # Total Revenue = Sum of all completed enrollment course prices
     all_enrollments = Enrollment.objects.filter(payment_status='completed')
-
+    total_revenue = Decimal('0')
     for en in all_enrollments:
         price = en.course.price
         if hasattr(price, 'to_decimal'):
@@ -684,14 +630,23 @@ def owner_dashboard(request):
             price = Decimal(str(price))
         total_revenue += price
 
-    platform_profit = total_revenue * Decimal('0.20')  # 20% commission
+    # Platform Profit = Sum of 'admin' and 'layanan' commissions
+    platform_profit = Commission.objects.filter(
+        role__in=['admin', 'layanan']
+    ).aggregate(total=models.Sum('amount'))['total'] or Decimal('0')
 
     # Top courses
     courses = Course.objects.all()
+    course_list = []
     for c in courses:
-        c.enrollment_count = Enrollment.objects.filter(course=c, payment_status='completed').count()
+        enrollment_count = Enrollment.objects.filter(course=c, payment_status='completed').count()
+        course_list.append({
+            'title': c.title,
+            'enrollment_count': enrollment_count,
+            'mentor': c.mentor.get_full_name() or c.mentor.username
+        })
 
-    top_courses = sorted(courses, key=lambda x: x.enrollment_count, reverse=True)[:5]
+    top_courses = sorted(course_list, key=lambda x: x['enrollment_count'], reverse=True)[:5]
     recent_enrollments = all_enrollments.order_by('-enrolled_at')[:10]
 
     context = {

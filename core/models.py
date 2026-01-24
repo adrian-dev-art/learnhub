@@ -200,3 +200,77 @@ class Certificate(models.Model):
 
     def __str__(self):
         return f"Certificate - {self.user.username} - {self.course.title}"
+
+
+class Commission(models.Model):
+    """Commission records for Penulis and Admin"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('paid', 'Paid'),
+        ('cancelled', 'Cancelled'),
+    ]
+
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('penulis', 'Penulis'),
+        ('layanan', 'Layanan'),
+    ]
+
+    RATE_TYPE_CHOICES = [
+        ('percentage', 'Percentage (%)'),
+        ('flat', 'Flat (Rp)'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='commissions')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='penulis')
+    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE, related_name='commissions', null=True, blank=True)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    rate_type = models.CharField(max_length=20, choices=RATE_TYPE_CHOICES, default='percentage')
+    rate_value = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text="Percentage or Flat amount")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    paid_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'commissions'
+        ordering = ['-created_at']
+
+    @property
+    def formatted_amount(self):
+        """Format amount with thousand separator: 1.000.000"""
+        return "{:,.0f}".format(self.amount).replace(",", ".")
+
+    def __str__(self):
+        return f"Commission - {self.user.username} - Rp {self.formatted_amount} ({self.status})"
+
+
+class CommissionRate(models.Model):
+    """Settings for commission percentages set by Owner"""
+    ROLE_CHOICES = [
+        ('admin', 'Admin'),
+        ('penulis', 'Penulis'),
+        ('layanan', 'Layanan'),
+    ]
+
+    RATE_TYPE_CHOICES = [
+        ('percentage', 'Percentage (%)'),
+        ('flat', 'Flat (Rp)'),
+    ]
+
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True, help_text="Leave blank for global rate")
+    rate_type = models.CharField(max_length=20, choices=RATE_TYPE_CHOICES, default='percentage')
+    percentage = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, help_text="Used if type is percentage")
+    flat_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, default=0, help_text="Used if type is flat")
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = 'commission_rates'
+        unique_together = ['role', 'course']
+
+    def __str__(self):
+        course_str = self.course.title if self.course else "Global"
+        rate_display = f"{self.percentage}%" if self.rate_type == 'percentage' else f"Rp {self.flat_amount}"
+        return f"{self.get_role_display()} - {course_str}: {rate_display}"

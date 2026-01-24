@@ -9,7 +9,7 @@
   <!-- Stats Overview -->
   <div class="grid grid-3" style="margin-bottom: var(--spacing-xl);">
     <div class="stat-card">
-      <div class="stat-icon" style="background: var(--primary-light); color: var(--primary);">
+      <div class="stat-icon" style="background: rgba(212, 175, 55, 0.15); color: #D4AF37;">
         <span class="material-icons">school</span>
       </div>
       <div class="stat-info">
@@ -18,7 +18,7 @@
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background: #dcfce7; color: #10b981;">
+      <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
         <span class="material-icons">check_circle</span>
       </div>
       <div class="stat-info">
@@ -27,7 +27,7 @@
       </div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon" style="background: #fef3c7; color: #f59e0b;">
+      <div class="stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b;">
         <span class="material-icons">emoji_events</span>
       </div>
       <div class="stat-info">
@@ -63,7 +63,8 @@
 
         <!-- Info -->
         <div style="flex: 1;">
-          <h3 style="font-size: var(--font-size-lg); font-weight: 600; color: var(--text-main); margin-bottom: 4px;">{{ enrollment.course.title }}</h3>
+          <h3 style="font-size: var(--font-size-lg); font-weight: 600; color: var(--text-main); margin-bottom: 4px;">{{
+            enrollment.course.title }}</h3>
           <div style="font-size: var(--font-size-sm); color: var(--text-muted); margin-bottom: var(--spacing-sm);">
             Started on {{ enrollment.enrolled_at|date:"M d, Y" }}
           </div>
@@ -75,7 +76,8 @@
                 style="width: {{ enrollment.progress_percentage }}%; height: 100%; background: var(--primary); border-radius: 4px;">
               </div>
             </div>
-            <span style="font-weight: 600; font-size: var(--font-size-sm); color: var(--text-main);">{{ enrollment.progress_percentage }}%</span>
+            <span style="font-weight: 600; font-size: var(--font-size-sm); color: var(--text-main);">{{
+              enrollment.progress_percentage }}%</span>
           </div>
         </div>
 
