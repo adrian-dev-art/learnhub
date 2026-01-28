@@ -426,22 +426,30 @@ def assessment_view(request, enrollment_id):
         messages.info(request, 'You have already passed this assessment.')
         return redirect('certificate_view', enrollment_id=enrollment_id)
 
+    # Get questions from database
+    questions = assessment.questions.all().prefetch_related('choices')
+
     if request.method == 'POST':
-        form = AssessmentSubmissionForm(request.POST, questions=assessment.questions)
+        form = AssessmentSubmissionForm(request.POST, questions=questions)
 
         if form.is_valid():
             # Calculate score
             correct = 0
             answers = {}
 
-            for i, question in enumerate(assessment.questions):
-                user_answer = form.cleaned_data.get(f'question_{i}')
-                answers[f'question_{i}'] = user_answer
+            for question in questions:
+                user_choice_id = form.cleaned_data.get(f'question_{question.id}')
+                answers[f'question_{question.id}'] = user_choice_id
 
-                if user_answer == question.get('correct_answer'):
-                    correct += 1
+                if user_choice_id:
+                    try:
+                        choice = question.choices.get(id=user_choice_id)
+                        if choice.is_correct:
+                            correct += 1
+                    except Choice.DoesNotExist:
+                        pass
 
-            total_questions = len(assessment.questions)
+            total_questions = questions.count()
             if total_questions > 0:
                 score = int((correct / total_questions) * 100)
             else:
@@ -479,11 +487,18 @@ def assessment_view(request, enrollment_id):
                     f'You scored {score}%. You need {assessment.passing_score}% to pass. Please try again.'
                 )
     else:
-        form = AssessmentSubmissionForm(questions=assessment.questions)
+        form = AssessmentSubmissionForm(questions=questions)
+
+    # Attach form fields to questions for easier rendering
+    for question in questions:
+        field_name = f'question_{question.id}'
+        if field_name in form.fields:
+            question.form_field = form[field_name]
 
     context = {
         'enrollment': enrollment,
         'assessment': assessment,
+        'questions': questions,
         'form': form
     }
     return render(request, 'student/assessment.html', context)

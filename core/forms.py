@@ -59,14 +59,14 @@ class ProfileForm(forms.ModelForm):
 
 
 class AssessmentSubmissionForm(forms.Form):
-    """Dynamic form for assessment submission"""
+    """Dynamic form for assessment submission using Question and Choice models"""
     def __init__(self, *args, questions=None, **kwargs):
         super().__init__(*args, **kwargs)
         if questions:
-            for i, question in enumerate(questions):
-                choices = [(opt, opt) for opt in question.get('options', [])]
-                self.fields[f'question_{i}'] = forms.ChoiceField(
-                    label=question.get('question', ''),
+            for question in questions:
+                choices = [(choice.id, choice.text) for choice in question.choices.all()]
+                self.fields[f'question_{question.id}'] = forms.ChoiceField(
+                    label=question.text,
                     choices=choices,
                     widget=forms.RadioSelect(attrs={'class': 'form-radio'})
                 )

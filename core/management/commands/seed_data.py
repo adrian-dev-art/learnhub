@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
-from core.models import Course, Module, Enrollment, Assessment
+from core.models import Course, Module, Enrollment, Assessment, Question, Choice
 from decimal import Decimal
 import random
 
@@ -110,19 +110,30 @@ class Command(BaseCommand):
                     }
                 )
 
-        # 4. Create Enrollments
-        self.stdout.write('Creating enrollments...')
-        for student in students:
-            # Enroll each student in 1-2 random courses
-            enrolled_courses = random.sample(courses, random.randint(1, 2))
-            for course in enrolled_courses:
-                Enrollment.objects.get_or_create(
-                    user=student,
-                    course=course,
-                    defaults={
-                        'payment_status': 'completed',
-                        'completed': random.choice([True, False]),
-                    }
-                )
+        # 5. Create Assessments
+        self.stdout.write('Creating assessments...')
+        for course in courses:
+            assessment, created = Assessment.objects.get_or_create(
+                course=course,
+                defaults={
+                    'title': f'Final Assessment for {course.title}',
+                    'passing_score': 70,
+                }
+            )
+            
+            if created:
+                # Add 3 sample questions for each assessment
+                for i in range(1, 4):
+                    question = Question.objects.create(
+                        assessment=assessment,
+                        text=f'Question {i}: What is the primary focus of {course.title}?',
+                        order=i
+                    )
+                    
+                    # Add 4 choices for each question
+                    Choice.objects.create(question=question, text='Option A (Correct)', is_correct=True)
+                    Choice.objects.create(question=question, text='Option B', is_correct=False)
+                    Choice.objects.create(question=question, text='Option C', is_correct=False)
+                    Choice.objects.create(question=question, text='Option D', is_correct=False)
 
         self.stdout.write(self.style.SUCCESS('Successfully seeded database!'))

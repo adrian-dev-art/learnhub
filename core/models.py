@@ -156,13 +156,43 @@ class Assessment(models.Model):
     course = models.OneToOneField(Course, on_delete=models.CASCADE, related_name='assessment')
     title = models.CharField(max_length=200)
     passing_score = models.IntegerField(default=70)
-    questions = models.JSONField()  # List of questions with options and correct answers
+    # Deprecated: use Question and Choice models instead
+    questions_json = models.JSONField(null=True, blank=True, db_column='questions')
 
     class Meta:
         db_table = 'assessments'
 
     def __str__(self):
         return f"Assessment - {self.course.title}"
+
+
+class Question(models.Model):
+    """Assessment question"""
+    assessment = models.ForeignKey(Assessment, related_name='questions', on_delete=models.CASCADE)
+    text = models.TextField()
+    image = models.ImageField(upload_to='assessments/questions/', blank=True, null=True)
+    order = models.IntegerField(default=0)
+
+    class Meta:
+        db_table = 'assessment_questions'
+        ordering = ['order']
+
+    def __str__(self):
+        return f"Question: {self.text[:50]}..."
+
+
+class Choice(models.Model):
+    """Assessment question choice"""
+    question = models.ForeignKey(Question, related_name='choices', on_delete=models.CASCADE)
+    text = models.CharField(max_length=500)
+    image = models.ImageField(upload_to='assessments/choices/', blank=True, null=True)
+    is_correct = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'assessment_choices'
+
+    def __str__(self):
+        return f"Choice: {self.text[:50]}..."
 
 
 class AssessmentResult(models.Model):

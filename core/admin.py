@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from unfold.admin import ModelAdmin
 from unfold.components import BaseComponent, register_component
-from .models import Course, Module, Enrollment, Assessment, AssessmentResult, Certificate, User, Commission, CommissionRate
+from .models import Course, Module, Enrollment, Assessment, AssessmentResult, Certificate, User, Commission, CommissionRate, Question, Choice
 import json
 
 
@@ -100,10 +100,29 @@ class EnrollmentAdmin(ModelAdmin):
     readonly_fields = ('access_key', 'enrolled_at')
 
 
+class ChoiceInline(admin.TabularInline):
+    model = Choice
+    extra = 1
+
+
+class QuestionInline(admin.StackedInline):
+    model = Question
+    extra = 1
+    show_change_link = True
+
+
 @admin.register(Assessment)
 class AssessmentAdmin(ModelAdmin):
     list_display = ('title', 'course', 'passing_score')
     search_fields = ('title', 'course__title')
+    inlines = [QuestionInline]
+
+
+@admin.register(Question)
+class QuestionAdmin(ModelAdmin):
+    list_display = ('text', 'assessment', 'order')
+    list_filter = ('assessment',)
+    inlines = [ChoiceInline]
 
 
 @admin.register(AssessmentResult)
