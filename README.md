@@ -1,129 +1,134 @@
-# GampangBelajar Course Platform
+# LearnHub - Platform Kursus Online
 
-A modern, lightweight Django-based interactive course platform with MongoDB integration.
+LearnHub adalah platform manajemen pembelajaran (LMS) modern yang dibangun dengan Django. Platform ini mendukung peran Admin, Owner, Mentor (Penulis), dan Student (Pembaca).
 
-## Features
+## 🚀 Skema Sistem
 
-- Modern, minimalist UI with Google Material Icons
-- Interactive Python code compiler (browser-based)
-- Course catalog and enrollment system
-- Payment integration (demo mode included)
-- User profile management
-- Email delivery for access keys
-- YouTube video embedding
-- Assessment system with auto-grading
-- PDF certificate generation
-- Admin interface for course management
+### 1. Skema Akses Peran (User Roles)
+```mermaid
+graph TD
+    User((User)) --> Admin[Admin: Kelola Platform & Komisi]
+    User --> Owner[Owner: Pantau Statistik & Pendapatan]
+    User --> Mentor[Mentor: Buat Kursus & Materi]
+    User --> Student[Student: Beli & Pelajari Kursus]
+```
 
-## Tech Stack
+### 2. Alur Pembelajaran (Learning Flow)
+```mermaid
+sequenceDiagram
+    participant S as Student
+    participant P as Platform
+    participant M as Mentor
+    S->>P: Pilih Kursus & Bayar
+    P->>S: Buka Akses Materi
+    loop Belajar
+        S->>P: Baca Materi / Tonton Video
+        S->>P: Selesaikan Code Challenge
+    end
+    S->>P: Ikuti Assessment/Ujian
+    alt Lulus
+        P->>S: Terbitkan Sertifikat
+    else Gagal
+        P->>S: Ulangi Assessment
+    end
+```
 
-- **Backend**: Django 4.2 (lightweight configuration)
-- **Database**: MongoDB (via djongo)
-- **Frontend**: HTML, CSS (modern design system), Vanilla JavaScript
-- **Icons**: Google Material Icons
-- **PDF Generation**: ReportLab
+---
 
-## Setup Instructions
+## 🛠️ Tech Stack
 
-### 1. Install Dependencies
+- **Backend:** Django 5.2.11+
+- **Database:** MySQL (via Laragon)
+- **Database Driver:** PyMySQL (dengan spoofing version untuk compatibility)
+- **Frontend:** Django Templates + Tailwind CSS (via Unfold Admin)
+- **Python Version:** 3.12 - 3.14.2+
 
+---
+
+## 📋 Prasyarat Instalasi
+
+1. **Python 3.12+** (Disarankan Python 3.14 jika mengikuti setup ini).
+2. **Laragon** (untuk MySQL server).
+3. **Git**.
+
+---
+
+## ⚙️ Langkah-Langkah Instalasi
+
+### 1. Clone Repository
+```bash
+git clone https://github.com/adrian-dev-art/learnhub.git
+cd learnhub
+```
+
+### 2. Setup Virtual Environment (Opsional tapi Disarankan)
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+### 3. Instal Dependensi
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Configure Environment
+### 4. Setup Database (Laragon)
+1. Buka Laragon.
+2. Klik **Start All**.
+3. Buka **Database** (HeidiSQL/phpMyAdmin).
+4. Buat database baru bernama: `gampangbelajar`.
 
-Create a `.env` file from `.env.example`:
-
-```bash
-copy .env.example .env
+### 5. Setup Environment Variable
+Pastikan file `.env` sudah ada di root folder (atau buat baru) dengan isi:
+```env
+DEBUG=True
+SECRET_KEY=django-insecure-dev-key
+ALLOWED_HOSTS=localhost,127.0.0.1
+# Database Config (Default Laragon)
+DB_NAME=gampangbelajar
+DB_USER=root
+DB_PASSWORD=
+DB_HOST=127.0.0.1
+DB_PORT=3306
 ```
 
-Edit `.env` and configure:
-- MongoDB connection (local or Atlas)
-- Email settings (Gmail SMTP recommended)
-- Secret key
-
-### 3. Run Migrations
-
+### 6. Migrasi Database
 ```bash
 python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 4. Create Admin User
-
+### 7. Seed Data (Opsional)
+Untuk mengisi database dengan data contoh (User, Kursus, Materi):
 ```bash
-python manage.py createsuperuser
+python manage.py seed
 ```
 
-### 5. Seed Sample Data
-
-```bash
-python manage.py seed_data
-```
-
-This creates a sample "Python Programming Fundamentals" course with modules and assessment.
-
-### 6. Run Development Server
-
+### 8. Jalankan Server
 ```bash
 python manage.py runserver
 ```
+Akses di: `http://127.0.0.1:8000`
 
-Visit `http://localhost:8000` to access the platform.
+---
 
-## Usage Flow
+## 🔑 Akun Default (Hasil Seeding)
 
-1. **Browse Catalog**: Visit `/catalog/` to see available courses
-2. **Register**: Create an account at `/register/`
-3. **Enroll**: Select a course and complete payment (demo mode)
-4. **Complete Profile**: Fill in your profile information
-5. **Receive Access Key**: Check your email for the course access key
-6. **Learn**: Access course modules with interactive code exercises
-7. **Assess**: Complete the assessment at the end
-8. **Certify**: Download your PDF certificate upon passing
+Jika Anda menjalankan perintah `seed`, gunakan akun berikut:
 
-## Admin Panel
+| Peran | Username | Password |
+| :--- | :--- | :--- |
+| **Admin** | `admin` | `admin123` |
+| **Owner** | `owner` | `owner123` |
+| **Mentor** | `mentor1` | `password123` |
+| **Student** | `student1` | `password123` |
 
-Access the admin panel at `/admin/` to:
-- Create and manage courses
-- Add modules (text, code, video, image)
-- Create assessments
-- View enrollments and certificates
+---
 
-## Code Compiler
-
-The platform includes a sandboxed Python code compiler that:
-- Executes user code in a temporary file
-- Has a 5-second timeout for safety
-- Captures stdout and stderr
-- Runs in an isolated environment
-
-## Project Structure
-
+## ⚠️ Catatan Penting untuk Python 3.14+
+Karena Python 3.14 masih baru, proyek ini menggunakan **PyMySQL** yang telah dikonfigurasi di `config/__init__.py` untuk melakukan spoofing terhadap `mysqlclient`. Jangan menghapus baris berikut di file tersebut:
+```python
+import pymysql
+pymysql.version_info = (2, 1, 1, "final", 0)
+pymysql.install_as_MySQLdb()
 ```
-learningapp/
-├── config/          # Django settings and configuration
-├── core/            # Main application
-│   ├── models.py    # MongoDB models
-│   ├── views.py     # Views and business logic
-│   ├── forms.py     # Django forms
-│   ├── utils.py     # Utility functions
-│   ├── admin.py     # Admin configuration
-│   └── management/  # Custom commands
-├── templates/       # HTML templates
-├── static/          # CSS and JavaScript
-└── requirements.txt
-```
-
-## Security Notes
-
-- The code compiler is sandboxed with timeout limits
-- Payment is in demo mode by default
-- Email credentials should be stored in environment variables
-- Change SECRET_KEY in production
-
-## License
-
-This project is for educational purposes.
