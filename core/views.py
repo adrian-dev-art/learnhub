@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import models
+from django.conf import settings
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -16,6 +17,8 @@ from functools import wraps
 import json
 import markdown
 from decimal import Decimal
+from django.core.files.storage import FileSystemStorage
+from datetime import datetime
 
 
 def mentor_required(view_func):
@@ -426,8 +429,13 @@ def assessment_view(request, enrollment_id):
         messages.info(request, 'You have already passed this assessment.')
         return redirect('certificate_view', enrollment_id=enrollment_id)
 
-    # Get questions from database
-    questions = assessment.questions.all().prefetch_related('choices')
+    # Get questions (prefer JSON if exists)
+    is_json = False
+    if assessment.questions_json:
+        questions = assessment.questions_json
+        is_json = True
+    else:
+        questions = assessment.questions.all().prefetch_related('choices')
 
     if request.method == 'POST':
         form = AssessmentSubmissionForm(request.POST, questions=questions)
@@ -436,20 +444,35 @@ def assessment_view(request, enrollment_id):
             # Calculate score
             correct = 0
             answers = {}
+            
+            for i, question in enumerate(questions):
+                if is_json:
+                    q_id = i
+                    user_choice_idx = form.cleaned_data.get(f'question_{q_id}')
+                    answers[f'question_{q_id}'] = user_choice_idx
+                    if user_choice_idx is not None:
+                        try:
+                            idx = int(user_choice_idx)
+                            if 0 <= idx < len(question['options']):
+                                opt = question['options'][idx]
+                                user_answer_text = opt['text'] if isinstance(opt, dict) else opt
+                                if user_answer_text == question.get('correct_answer'):
+                                    correct += 1
+                        except (ValueError, TypeError):
+                            pass
+                else:
+                    q_id = question.id
+                    user_choice_id = form.cleaned_data.get(f'question_{q_id}')
+                    answers[f'question_{q_id}'] = user_choice_id
+                    if user_choice_id:
+                        try:
+                            choice = question.choices.get(id=user_choice_id)
+                            if choice.is_correct:
+                                correct += 1
+                        except Exception:
+                            pass
 
-            for question in questions:
-                user_choice_id = form.cleaned_data.get(f'question_{question.id}')
-                answers[f'question_{question.id}'] = user_choice_id
-
-                if user_choice_id:
-                    try:
-                        choice = question.choices.get(id=user_choice_id)
-                        if choice.is_correct:
-                            correct += 1
-                    except Choice.DoesNotExist:
-                        pass
-
-            total_questions = questions.count()
+            total_questions = len(questions) if is_json else questions.count()
             if total_questions > 0:
                 score = int((correct / total_questions) * 100)
             else:
@@ -489,16 +512,52 @@ def assessment_view(request, enrollment_id):
     else:
         form = AssessmentSubmissionForm(questions=questions)
 
-    # Attach form fields to questions for easier rendering
-    for question in questions:
-        field_name = f'question_{question.id}'
-        if field_name in form.fields:
-            question.form_field = form[field_name]
+    # Attach form fields and IDs for template rendering
+    rendered_questions = []
+    for i, question in enumerate(questions):
+        if is_json:
+            q_id = i
+            q_text = question.get('question', '')
+            q_image_url = question.get('image_url', '')
+            # For JSON, options might be strings or objects
+            q_options = []
+            for idx, opt in enumerate(question.get('options', [])):
+                if isinstance(opt, dict):
+                    q_options.append({
+                        'id': idx, 
+                        'text': opt.get('text', ''), 
+                        'image_url': opt.get('image_url', '')
+                    })
+                else:
+                    q_options.append({'id': idx, 'text': opt, 'image_url': ''})
+        else:
+            q_id = question.id
+            q_text = question.text
+            q_image_url = question.image.url if hasattr(question, 'image') and question.image else ''
+            # Map choice models to standard dict
+            q_options = []
+            for choice in question.choices.all():
+                q_options.append({
+                    'id': choice.id,
+                    'text': choice.text,
+                    'image_url': choice.image.url if hasattr(choice, 'image') and choice.image else ''
+                })
+
+        field_name = f'question_{q_id}'
+        form_field = form[field_name] if field_name in form.fields else None
+        
+        rendered_questions.append({
+            'id': q_id,
+            'text': q_text,
+            'image_url': q_image_url,
+            'options': q_options,
+            'form_field': form_field
+        })
 
     context = {
         'enrollment': enrollment,
         'assessment': assessment,
-        'questions': questions,
+        'questions': rendered_questions,
         'form': form
     }
     return render(request, 'student/assessment.html', context)
@@ -924,18 +983,41 @@ def mentor_assessment_edit(request, course_id):
 
             # Handle questions from POST data
             questions = []
-            q_idx = 0
-            # Simple parsing of dynamic form data
-            while f'question_text_{q_idx}' in request.POST:
+            
+            # Find all question indices present in POST to handle gaps
+            q_indices = []
+            for key in request.POST.keys():
+                if key.startswith('question_text_'):
+                    try:
+                        q_indices.append(int(key.split('_')[-1]))
+                    except (ValueError, IndexError):
+                        pass
+            
+            q_indices.sort()
+            
+            for q_idx in q_indices:
                 q_text = request.POST.get(f'question_text_{q_idx}')
 
                 # Get options
                 options = []
                 o_idx = 0
-                while f'option_{q_idx}_{o_idx}' in request.POST:
-                    opt_val = request.POST.get(f'option_{q_idx}_{o_idx}')
-                    if opt_val: # Only add non-empty options
-                        options.append(opt_val)
+                while f'option_text_{q_idx}_{o_idx}' in request.POST:
+                    opt_text = request.POST.get(f'option_text_{q_idx}_{o_idx}')
+                    
+                    # Handle option image
+                    opt_image_url = request.POST.get(f'existing_option_image_{q_idx}_{o_idx}', '')
+                    opt_file = request.FILES.get(f'option_image_{q_idx}_{o_idx}')
+                    
+                    if opt_file:
+                        fs = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'assessments'))
+                        filename = fs.save(opt_file.name, opt_file)
+                        opt_image_url = os.path.join(settings.MEDIA_URL, 'assessments', filename).replace('\\', '/')
+                    
+                    if opt_text: 
+                        options.append({
+                            'text': opt_text,
+                            'image_url': opt_image_url
+                        })
                     o_idx += 1
 
                 # Get correct answer index
@@ -944,25 +1026,35 @@ def mentor_assessment_edit(request, course_id):
                     try:
                         correct_idx = int(correct_idx_str)
                         if 0 <= correct_idx < len(options):
-                            correct_answer = options[correct_idx]
+                            correct_answer = options[correct_idx]['text']
                         else:
-                            correct_answer = options[0]
+                            correct_answer = options[0]['text']
                     except ValueError:
-                        correct_answer = options[0]
+                        correct_answer = options[0]['text']
                 elif options:
-                    correct_answer = options[0]
+                    correct_answer = options[0]['text']
                 else:
                     correct_answer = ""
+
+                # Get or keep question image
+                image_url = request.POST.get(f'existing_image_{q_idx}', '')
+                q_image = request.FILES.get(f'question_image_{q_idx}')
+                
+                if q_image:
+                    fs = FileSystemStorage(location=os.path.join(settings.MEDIA_ROOT, 'assessments'))
+                    filename = fs.save(q_image.name, q_image)
+                    image_url = os.path.join(settings.MEDIA_URL, 'assessments', filename).replace('\\', '/')
 
                 if q_text and options:
                     questions.append({
                         'question': q_text,
                         'options': options,
-                        'correct_answer': correct_answer
+                        'correct_answer': correct_answer,
+                        'image_url': image_url
                     })
                 q_idx += 1
 
-            assessment.questions = questions
+            assessment.questions_json = questions
             assessment.save()
             messages.success(request, 'Assessment saved successfully.')
             return redirect('mentor_course_detail', course_id=course.id)
@@ -971,7 +1063,8 @@ def mentor_assessment_edit(request, course_id):
     return render(request, 'mentor/assessment_form.html', {
         'form': form,
         'course': course,
-        'assessment': assessment
+        'assessment': assessment,
+        'questions_json': json.dumps(assessment.questions_json) if assessment and assessment.questions_json else '[]'
     })
 
 

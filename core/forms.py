@@ -59,14 +59,32 @@ class ProfileForm(forms.ModelForm):
 
 
 class AssessmentSubmissionForm(forms.Form):
-    """Dynamic form for assessment submission using Question and Choice models"""
+    """Dynamic form for assessment submission - supports both Question models and JSON data"""
     def __init__(self, *args, questions=None, **kwargs):
         super().__init__(*args, **kwargs)
         if questions:
-            for question in questions:
-                choices = [(choice.id, choice.text) for choice in question.choices.all()]
-                self.fields[f'question_{question.id}'] = forms.ChoiceField(
-                    label=question.text,
+            for i, question in enumerate(questions):
+                # Handle both Model objects and dictionaries from JSON
+                if hasattr(question, 'choices'):
+                    # It's a Question model instance (from seeder)
+                    choices = [(choice.id, choice.text) for choice in question.choices.all()]
+                    q_id = question.id
+                    q_label = question.text
+                else:
+                    # It's a dictionary (from questions_json / mentor side)
+                    # We use enumerate index as ID if not provided
+                    raw_options = question.get('options', [])
+                    choices = []
+                    for idx, opt in enumerate(raw_options):
+                        # Handle both strings and objects
+                        opt_text = opt.get('text', '') if isinstance(opt, dict) else opt
+                        choices.append((idx, opt_text))
+                    
+                    q_id = i
+                    q_label = question.get('question', '')
+
+                self.fields[f'question_{q_id}'] = forms.ChoiceField(
+                    label=q_label,
                     choices=choices,
                     widget=forms.RadioSelect(attrs={'class': 'form-radio'})
                 )

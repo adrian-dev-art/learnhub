@@ -45,32 +45,30 @@
               <span style="color: white; font-weight: 600;">{{ question.text }}</span>
             </h3>
 
-            {% if question.image %}
+            {% if question.image_url %}
             <div class="mb-3">
-              <img src="{{ question.image.url }}" alt="Question Image"
+              <img src="{{ question.image_url }}" alt="Question Image"
                 style="max-width: 100%; border-radius: var(--radius-md); box-shadow: var(--shadow-lg);">
             </div>
             {% endif %}
 
             <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
-              {% with field=question.form_field %}
-              {% for choice in question.choices.all %}
+              {% for choice in question.options %}
               <label class="choice-container"
                 style="display: flex; align-items: center; gap: var(--spacing-md); padding: var(--spacing-md); background: #334155; border: 1px solid #475569; border-radius: var(--radius-md); cursor: pointer; transition: all 0.2s; color: white;">
                 <input type="radio" name="question_{{ question.id }}" value="{{ choice.id }}" required
                   style="width: 1.2rem; height: 1.2rem; cursor: pointer; accent-color: var(--primary-400);">
                 <div style="flex: 1;">
                   <div style="font-weight: 500;">{{ choice.text }}</div>
-                  {% if choice.image %}
+                  {% if choice.image_url %}
                   <div style="margin-top: var(--spacing-xs);">
-                    <img src="{{ choice.image.url }}" alt="Choice Image"
+                    <img src="{{ choice.image_url }}" alt="Choice Image"
                       style="max-height: 150px; border-radius: var(--radius-sm);">
                   </div>
                   {% endif %}
                 </div>
               </label>
               {% endfor %}
-              {% endwith %}
             </div>
           </div>
           {% endfor %}

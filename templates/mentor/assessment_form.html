@@ -8,7 +8,7 @@
 <div class="container">
   <div class="content-card" style="margin-bottom: var(--spacing-xl);">
     <h2
-      style="font-size: var(--font-size-xl); font-weight: 700; color: var(--text-main); margin-bottom: var(--spacing-md);">
+      style="font-size: var(--font-size-xl); font-weight: 700; color: var(--text-main, #ffffff); margin-bottom: var(--spacing-md);">
       Configure Final Assessment
     </h2>
     <p style="color: var(--text-muted); margin-bottom: var(--spacing-lg);">
@@ -16,7 +16,7 @@
       certificate.
     </p>
 
-    <form method="post" id="assessmentForm">
+    <form method="post" id="assessmentForm" enctype="multipart/form-data">
       {% csrf_token %}
 
       <!-- Basic Settings -->
@@ -59,7 +59,7 @@
 
       <!-- Certificate Preview -->
       <div
-        style="background: var(--gray-50); padding: var(--spacing-lg); border-radius: var(--radius-lg); margin-bottom: var(--spacing-xl); border: 1px dashed var(--border-color);">
+        style="background: var(--card-bg-light, rgba(255,255,255,0.03)); padding: var(--spacing-lg); border-radius: var(--radius-lg); margin-bottom: var(--spacing-xl); border: 1px dashed var(--border-color, #2f334d);">
         <div style="display: flex; align-items: center; gap: var(--spacing-md);">
           <div
             style="width: 48px; height: 48px; background: #fef3c7; color: #f59e0b; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
@@ -91,32 +91,45 @@
   let questionCount = 0;
 
   // Existing questions data (if editing)
-  // Existing questions data (if editing)
-  const existingQuestions = {{ assessment.questions|default:"[]"|safe }};
+  const existingQuestions = {{ questions_json| safe }};
 
   function createQuestionElement(index, data = null) {
     const qDiv = document.createElement('div');
     qDiv.className = 'question-block';
-    qDiv.style.background = 'white';
-    qDiv.style.border = '1px solid var(--border-color)';
-    qDiv.style.borderRadius = 'var(--radius-md)';
+    qDiv.style.background = 'var(--card-bg, #1a1b26)';
+    qDiv.style.border = '1px solid var(--border-color, #2f334d)';
+    qDiv.style.borderRadius = 'var(--radius-lg, 12px)';
     qDiv.style.padding = 'var(--spacing-lg)';
     qDiv.style.marginBottom = 'var(--spacing-lg)';
     qDiv.innerHTML = `
-      <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-md);">
-        <h4 style="font-weight: 600;">Question ${index + 1}</h4>
-        <button type="button" class="btn-icon-danger remove-q-btn" style="color: var(--error);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
+        <h4 style="font-weight: 600; color: var(--text-main, #ffffff);">Question ${index + 1}</h4>
+        <button type="button" class="btn-icon-danger remove-q-btn" style="color: var(--error, #f7768e); background: transparent; border: none; cursor: pointer;">
           <span class="material-icons">delete</span>
         </button>
       </div>
 
+      <div style="margin-bottom: var(--spacing-md);">
+        <label class="form-label" style="color: var(--text-main, #ffffff);">Question Image (Optional)</label>
+        <div style="display: flex; gap: var(--spacing-md); align-items: flex-start;">
+            <div id="preview_container_${index}" style="width: 120px; height: 80px; background: var(--input-bg, #0f111a); border: 2px dashed var(--border-color, #2f334d); border-radius: var(--radius-md); overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                ${data && data.image_url ? `<img src="${data.image_url}" style="width: 100%; height: 100%; object-fit: cover;">` : '<span class="material-icons" style="color: var(--text-muted); font-size: 24px;">image</span>'}
+            </div>
+            <div style="flex: 1;">
+                <input type="file" name="question_image_${index}" accept="image/*" class="form-input" style="background: var(--input-bg, #0f111a); color: var(--text-main, #ffffff); border: 1px solid var(--border-color, #2f334d); padding-top: 8px;">
+                <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Max size 2MB (JPG, PNG)</p>
+                ${data && data.image_url ? `<input type="hidden" name="existing_image_${index}" value="${data.image_url}">` : ''}
+            </div>
+        </div>
+      </div>
+
       <div class="form-group" style="margin-bottom: var(--spacing-md);">
-        <label class="form-label">Question Text</label>
-        <input type="text" name="question_text_${index}" class="form-input" required value="${data ? data.question : ''}" placeholder="Enter question here...">
+        <label class="form-label" style="color: var(--text-main, #ffffff);">Question Text</label>
+        <input type="text" name="question_text_${index}" class="form-input" required value="${data ? data.question : ''}" placeholder="Enter question here..." style="background: var(--input-bg, #0f111a); color: var(--text-main, #ffffff); border: 1px solid var(--border-color, #2f334d);">
       </div>
 
       <div class="options-container" id="options_container_${index}">
-        <label class="form-label" style="margin-bottom: 8px; display: block;">Options (Select correct answer)</label>
+        <label class="form-label" style="margin-bottom: 8px; display: block; color: var(--text-main, #ffffff);">Options (Select correct answer)</label>
         <!-- Options go here -->
       </div>
 
@@ -130,36 +143,70 @@
     const options = data ? data.options : ['', '']; // Default 2 empty options
     const correctAns = data ? data.correct_answer : '';
 
-    options.forEach((optText, i) => {
-      addOptionInput(optionsContainer, index, i, optText, correctAns);
+    options.forEach((optData, i) => {
+      const optText = typeof optData === 'object' ? optData.text : optData;
+      const optImage = typeof optData === 'object' ? optData.image_url : '';
+      addOptionInput(optionsContainer, index, i, optText, correctAns, optImage);
     });
 
     // Event listeners
-    qDiv.querySelector('.remove-q-btn').addEventListener('click', () => qDiv.remove());
+    qDiv.querySelector('.remove-q-btn').addEventListener('click', () => {
+      qDiv.remove();
+      reindexQuestionsGlobal();
+    });
     qDiv.querySelector('.add-opt-btn').addEventListener('click', () => {
+      const optionsContainer = qDiv.querySelector(`#options_container_${index}`);
       const currentOpts = optionsContainer.querySelectorAll('.option-row').length;
       addOptionInput(optionsContainer, index, currentOpts, '', '');
+    });
+
+    // Image preview listener
+    const imgInput = qDiv.querySelector(`input[name="question_image_${index}"]`);
+    imgInput.addEventListener('change', function () {
+      if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const preview = qDiv.querySelector(`#preview_container_${index}`);
+          preview.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
+        }
+        reader.readAsDataURL(this.files[0]);
+      }
     });
 
     return qDiv;
   }
 
-  function addOptionInput(container, qIndex, oIndex, value, correctAns) {
+  function addOptionInput(container, qIndex, oIndex, value, correctAns, imageUrl = '') {
     const row = document.createElement('div');
     row.className = 'option-row';
     row.style.display = 'flex';
-    row.style.alignItems = 'center';
+    row.style.alignItems = 'flex-start';
     row.style.gap = 'var(--spacing-sm)';
     row.style.marginBottom = 'var(--spacing-sm)';
+    row.style.padding = '8px';
+    row.style.background = 'rgba(255,255,255,0.02)';
+    row.style.borderRadius = 'var(--radius-md)';
 
     const isChecked = value === correctAns ? 'checked' : '';
     // If it's a new question, default first option as correct
     const defaultCheck = (!correctAns && oIndex === 0) ? 'checked' : '';
 
     row.innerHTML = `
-      <input type="radio" name="correct_index_${qIndex}" value="${oIndex}" ${isChecked} ${defaultCheck}>
-      <input type="text" name="option_${qIndex}_${oIndex}" class="form-input" value="${value}" placeholder="Option ${oIndex + 1}" required style="flex: 1;">
-      <button type="button" class="btn-icon-danger remove-opt-btn" tabindex="-1">
+      <div style="padding-top: 10px;">
+        <input type="radio" name="correct_index_${qIndex}" value="${oIndex}" ${isChecked} ${defaultCheck} style="accent-color: var(--primary, #7aa2f7);">
+      </div>
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
+        <input type="text" name="option_text_${qIndex}_${oIndex}" class="form-input" value="${value}" placeholder="Option ${oIndex + 1}" required style="background: var(--input-bg, #0f111a); color: var(--text-main, #ffffff); border: 1px solid var(--border-color, #2f334d);">
+        
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <div id="opt_preview_${qIndex}_${oIndex}" style="width: 40px; height: 40px; background: var(--input-bg, #0f111a); border: 1px dashed var(--border-color, #2f334d); border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                ${imageUrl ? `<img src="${imageUrl}" style="width: 100%; height: 100%; object-fit: cover;">` : '<span class="material-icons" style="font-size: 16px; color: var(--text-muted);">image</span>'}
+            </div>
+            <input type="file" name="option_image_${qIndex}_${oIndex}" accept="image/*" style="font-size: 11px; color: var(--text-muted); flex: 1;">
+            ${imageUrl ? `<input type="hidden" name="existing_option_image_${qIndex}_${oIndex}" value="${imageUrl}">` : ''}
+        </div>
+      </div>
+      <button type="button" class="btn-icon-danger remove-opt-btn" tabindex="-1" style="color: var(--error, #f7768e); background: transparent; border: none; cursor: pointer; padding-top: 10px;">
         <span class="material-icons" style="font-size: 18px;">close</span>
       </button>
     `;
@@ -167,13 +214,22 @@
     row.querySelector('.remove-opt-btn').addEventListener('click', () => {
       if (container.querySelectorAll('.option-row').length > 2) {
         row.remove();
-        // Re-index radio values? Ideally yes, but for simple MVP we rely on order.
-        // Actually, backend relies on index, so we should probably re-index or handle carefully.
-        // For simplicity, we just remove. Backend iterates until it finds gaps? No, backend iterates while exists.
-        // We should re-index the option names to ensure continuity for backend parsing loop.
         reindexOptions(container, qIndex);
       } else {
         alert('Minimum 2 options required.');
+      }
+    });
+
+    // Option image preview
+    const optImgInput = row.querySelector(`input[name="option_image_${qIndex}_${oIndex}"]`);
+    optImgInput.addEventListener('change', function () {
+      if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const preview = row.querySelector(`#opt_preview_${qIndex}_${oIndex}`);
+          preview.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;">`;
+        }
+        reader.readAsDataURL(this.files[0]);
       }
     });
 
@@ -185,10 +241,46 @@
     rows.forEach((row, idx) => {
       const radio = row.querySelector('input[type="radio"]');
       const text = row.querySelector('input[type="text"]');
+      const file = row.querySelector('input[type="file"]');
+      const hidden = row.querySelector('input[type="hidden"]');
+      const preview = row.querySelector('div[id^="opt_preview_"]');
+
       radio.value = idx;
-      text.name = `option_${qIndex}_${idx}`;
+      text.name = `option_text_${qIndex}_${idx}`;
       text.placeholder = `Option ${idx + 1}`;
+      file.name = `option_image_${qIndex}_${idx}`;
+      if (hidden) hidden.name = `existing_option_image_${qIndex}_${idx}`;
+      preview.id = `opt_preview_${qIndex}_${idx}`;
     });
+  }
+
+  function reindexQuestionsGlobal() {
+    const blocks = questionsContainer.querySelectorAll('.question-block');
+    blocks.forEach((block, idx) => {
+      // Update title
+      block.querySelector('h4').textContent = `Question ${idx + 1}`;
+
+      // Update question inputs
+      const qText = block.querySelector('input[name^="question_text_"]');
+      const qImg = block.querySelector('input[name^="question_image_"]');
+      const qHidden = block.querySelector('input[name^="existing_image_"]');
+      const qPreview = block.querySelector('div[id^="preview_container_"]');
+      const optContainer = block.querySelector('div[id^="options_container_"]');
+      const addOptBtn = block.querySelector('.add-opt-btn');
+      const correctRadios = block.querySelectorAll('input[type="radio"]');
+
+      qText.name = `question_text_${idx}`;
+      qImg.name = `question_image_${idx}`;
+      if (qHidden) qHidden.name = `existing_image_${idx}`;
+      qPreview.id = `preview_container_${idx}`;
+      optContainer.id = `options_container_${idx}`;
+      addOptBtn.dataset.qIndex = idx;
+      correctRadios.forEach(r => r.name = `correct_index_${idx}`);
+
+      // Reindex options within this question
+      reindexOptions(optContainer, idx);
+    });
+    questionCount = blocks.length;
   }
 
   // Initialize
@@ -210,7 +302,7 @@
 
   // Excel Import Logic
   const importInput = document.getElementById('importExcelInput');
-  importInput.addEventListener('change', function() {
+  importInput.addEventListener('change', function () {
     if (this.files.length === 0) return;
 
     const formData = new FormData();
@@ -227,28 +319,28 @@
       },
       body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        // Add imported questions
-        data.questions.forEach(q => {
-          questionsContainer.appendChild(createQuestionElement(questionCount, q));
-          questionCount++;
-        });
-        alert(`Successfully imported ${data.questions.length} questions.`);
-      } else {
-        alert('Error importing file: ' + data.error);
-      }
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('An error occurred during import.');
-    })
-    .finally(() => {
-      // Reset input and text
-      this.value = '';
-      this.parentElement.querySelector('span:nth-child(2)').textContent = originalText;
-    });
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Add imported questions
+          data.questions.forEach(q => {
+            questionsContainer.appendChild(createQuestionElement(questionCount, q));
+            questionCount++;
+          });
+          alert(`Successfully imported ${data.questions.length} questions.`);
+        } else {
+          alert('Error importing file: ' + data.error);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred during import.');
+      })
+      .finally(() => {
+        // Reset input and text
+        this.value = '';
+        this.parentElement.querySelector('span:nth-child(2)').textContent = originalText;
+      });
   });
 
 </script>

@@ -15,10 +15,18 @@ class AuthRedirectMiddleware:
         if request.user.is_authenticated:
             try:
                 from django.urls import resolve
-                current_url_name = resolve(request.path_info).url_name
+                resolved = resolve(request.path_info)
+                current_url_name = resolved.url_name
+                current_namespace = resolved.namespace
+
+                # Don't redirect if we are in the admin namespace
+                if current_namespace == 'admin':
+                    return self.get_response(request)
 
                 if current_url_name in restricted_url_names:
-                    if request.user.is_mentor:
+                    if request.user.role == 'admin':
+                        return redirect('admin_dashboard')
+                    if request.user.is_mentor or request.user.role == 'penulis':
                         return redirect('mentor_dashboard')
                     return redirect('student_dashboard')
             except:
